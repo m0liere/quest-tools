@@ -1,0 +1,868 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Curator's Log" currentPage="/curators-log">
+
+<style>
+  .book-surround {
+    min-height: 100vh;
+    padding: 3rem 1rem 6rem;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 0%, rgba(124,58,237,0.08), transparent 70%),
+      radial-gradient(ellipse 50% 40% at 20% 80%, rgba(13,148,136,0.05), transparent 60%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .book {
+    width: 100%;
+    max-width: 740px;
+    background: rgba(30,27,75,0.7);
+    border: 1px solid rgba(124,58,237,0.2);
+    box-shadow:
+      -8px 0 20px rgba(0,0,0,0.4),
+      8px 0 20px rgba(0,0,0,0.3),
+      0 20px 60px rgba(0,0,0,0.5);
+    position: relative;
+  }
+
+  /* Subtle line texture */
+  .book::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(
+      transparent 0px,
+      transparent 27px,
+      rgba(124,58,237,0.04) 27px,
+      rgba(124,58,237,0.04) 28px
+    );
+    pointer-events: none;
+    opacity: 0.5;
+  }
+
+  /* Left margin line */
+  .book::before {
+    content: '';
+    position: absolute;
+    top: 0; bottom: 0;
+    left: 72px;
+    width: 1px;
+    background: rgba(124,58,237,0.1);
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  /* TITLE PAGE */
+  .title-page {
+    padding: 5rem 4rem 4rem 5rem;
+    border-bottom: 1px solid rgba(124,58,237,0.15);
+    position: relative;
+    min-height: 380px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .title-page-top {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+
+  .log-eyebrow {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: rgba(167,139,250,0.6);
+    margin-bottom: 1.2rem;
+  }
+
+  .log-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(3rem, 7vw, 5.5rem);
+    font-weight: 300;
+    color: #EDE9FE;
+    line-height: 1;
+    margin-bottom: 0.3rem;
+  }
+
+  .log-subtitle {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.5rem;
+    font-weight: 300;
+    color: #A78BFA;
+    margin-bottom: 2rem;
+  }
+
+  .log-tagline {
+    font-family: 'Mulish', sans-serif;
+    font-size: 1rem;
+    color: rgba(253,252,255,0.55);
+    line-height: 1.75;
+    max-width: 440px;
+    font-style: italic;
+  }
+
+  .questor-block {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(124,58,237,0.1);
+  }
+
+  .fill-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .fill-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.48rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(167,139,250,0.45);
+  }
+
+  .fill-line {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid rgba(124,58,237,0.35);
+    background: transparent;
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    color: #EDE9FE;
+    padding: 3px 2px;
+    outline: none;
+  }
+
+  .fill-line::placeholder { color: rgba(167,139,250,0.25); font-style: italic; }
+  .fill-line:focus { border-bottom-color: #7C3AED; }
+
+  /* HOW TO USE */
+  .how-to-use {
+    padding: 2.5rem 4rem 2.5rem 5rem;
+    border-bottom: 1px solid rgba(124,58,237,0.1);
+    position: relative;
+  }
+
+  .htu-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.5rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(167,139,250,0.45);
+    margin-bottom: 1rem;
+  }
+
+  .htu-body {
+    font-family: 'Mulish', sans-serif;
+    font-size: 1rem;
+    color: rgba(253,252,255,0.55);
+    line-height: 1.9;
+    max-width: 520px;
+  }
+
+  .htu-body strong { color: #A78BFA; font-weight: 600; }
+
+  /* STAGE */
+  .stage {
+    padding: 3rem 4rem 3rem 5rem;
+    border-bottom: 1px solid rgba(124,58,237,0.1);
+    position: relative;
+    transition: background 0.3s ease;
+  }
+
+  .stage:focus-within { background: rgba(124,58,237,0.03); }
+
+  .stage-num {
+    position: absolute;
+    left: 1.4rem;
+    top: 3.2rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.48rem;
+    letter-spacing: 0.12em;
+    color: rgba(124,58,237,0.35);
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    transform: rotate(180deg);
+    user-select: none;
+  }
+
+  .stage-gq {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.48rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(167,139,250,0.45);
+    margin-bottom: 0.6rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  .stage-gq::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(124,58,237,0.12);
+  }
+
+  .stage-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.5rem, 3vw, 2.2rem);
+    font-weight: 600;
+    color: #EDE9FE;
+    line-height: 1.15;
+    margin-bottom: 0.3rem;
+  }
+
+  .stage-world {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1rem;
+    color: #A78BFA;
+    margin-bottom: 1.5rem;
+  }
+
+  .opening-q {
+    background: rgba(13,148,136,0.06);
+    border-left: 2px solid rgba(13,148,136,0.5);
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.8rem;
+  }
+
+  .opening-q-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.44rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(13,148,136,0.5);
+    margin-bottom: 0.5rem;
+  }
+
+  .opening-q-text {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.1rem;
+    color: rgba(204,251,241,0.8);
+    line-height: 1.65;
+  }
+
+  .freewrite-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.46rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(167,139,250,0.3);
+    margin-bottom: 0.5rem;
+  }
+
+  .freewrite {
+    width: 100%;
+    min-height: 140px;
+    border: none;
+    border-bottom: 1px solid rgba(124,58,237,0.1);
+    background: transparent;
+    font-family: 'Mulish', sans-serif;
+    font-size: 1rem;
+    color: rgba(253,252,255,0.85);
+    line-height: 1.9;
+    resize: vertical;
+    outline: none;
+    padding: 0.5rem 0;
+  }
+
+  .freewrite::placeholder { color: rgba(167,139,250,0.2); font-style: italic; }
+
+  .carry-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    margin-top: 1.4rem;
+  }
+
+  .carry-prefix {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 0.95rem;
+    color: rgba(253,252,255,0.45);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .carry-line {
+    flex: 1;
+    border: none;
+    border-bottom: 1px solid rgba(124,58,237,0.3);
+    background: transparent;
+    font-family: 'Mulish', sans-serif;
+    font-size: 1rem;
+    font-style: italic;
+    color: #EDE9FE;
+    padding: 2px 4px;
+    outline: none;
+  }
+
+  .carry-line::placeholder { color: rgba(167,139,250,0.2); font-style: italic; }
+  .carry-line:focus { border-bottom-color: #7C3AED; }
+
+  /* Milestone stage */
+  .stage.milestone { background: rgba(124,58,237,0.03); }
+  .stage.milestone .stage-title { color: #A78BFA; }
+
+  .milestone-badge {
+    display: inline-block;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.45rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    background: rgba(124,58,237,0.12);
+    border: 1px solid rgba(124,58,237,0.25);
+    color: #A78BFA;
+    margin-left: 0.6rem;
+    vertical-align: middle;
+  }
+
+  /* Mad Libs strip */
+  .mad-libs-strip {
+    margin-top: 1.8rem;
+    padding: 1.2rem 1.5rem;
+    background: rgba(124,58,237,0.06);
+    border: 1px solid rgba(124,58,237,0.15);
+  }
+
+  .ml-strip-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.44rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(167,139,250,0.45);
+    margin-bottom: 0.8rem;
+  }
+
+  .ml-strip-line {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.7rem;
+  }
+
+  .ml-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    color: rgba(253,252,255,0.45);
+    font-style: italic;
+  }
+
+  .ml-input {
+    border: none;
+    border-bottom: 1px solid rgba(124,58,237,0.35);
+    background: transparent;
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-style: italic;
+    color: #A78BFA;
+    min-width: 120px;
+    flex: 1;
+    outline: none;
+    padding: 1px 3px;
+  }
+
+  .ml-input::placeholder { color: rgba(124,58,237,0.3); }
+
+  /* CLOSING PAGE */
+  .closing-page {
+    padding: 4rem 4rem 5rem 5rem;
+    position: relative;
+  }
+
+  .closing-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.5rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(167,139,250,0.45);
+    margin-bottom: 2rem;
+  }
+
+  .closing-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.2rem;
+    font-weight: 300;
+    color: #EDE9FE;
+    margin-bottom: 0.4rem;
+  }
+
+  .closing-title em { color: #A78BFA; font-style: italic; }
+
+  .closing-q {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.2rem;
+    color: rgba(253,252,255,0.45);
+    line-height: 1.75;
+    margin-bottom: 2rem;
+    max-width: 480px;
+  }
+
+  .final-write {
+    width: 100%;
+    min-height: 200px;
+    border: none;
+    border-bottom: 1px solid rgba(124,58,237,0.1);
+    background: transparent;
+    font-family: 'Mulish', sans-serif;
+    font-size: 1.1rem;
+    color: rgba(253,252,255,0.85);
+    line-height: 1.9;
+    resize: vertical;
+    outline: none;
+    padding: 0.5rem 0;
+  }
+
+  .final-write::placeholder { color: rgba(167,139,250,0.2); font-style: italic; }
+
+  /* Print bar */
+  .print-bar {
+    padding: 1.5rem 4rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.8rem;
+    border-top: 1px solid rgba(124,58,237,0.1);
+  }
+
+  .action-btn {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.55rem 1.2rem;
+    border: 1px solid rgba(124,58,237,0.3);
+    background: transparent;
+    color: rgba(167,139,250,0.6);
+    cursor: pointer;
+    transition: all 0.2s;
+    border-radius: 2px;
+  }
+
+  .action-btn:hover {
+    border-color: #7C3AED;
+    color: #A78BFA;
+    background: rgba(124,58,237,0.08);
+  }
+
+  .action-btn.primary {
+    background: rgba(124,58,237,0.35);
+    color: #EDE9FE;
+    border-color: rgba(124,58,237,0.5);
+  }
+
+  .action-btn.primary:hover { background: rgba(124,58,237,0.5); }
+
+  .ornament {
+    text-align: center;
+    padding: 1.5rem 0;
+    font-size: 0.7rem;
+    color: rgba(124,58,237,0.3);
+    letter-spacing: 0.5em;
+    border-bottom: 1px solid rgba(124,58,237,0.1);
+  }
+
+  @media (max-width: 600px) {
+    .stage, .title-page, .how-to-use, .closing-page { padding-left: 3rem; padding-right: 1.5rem; }
+    .book::before { left: 48px; }
+    .stage-num { left: 0.8rem; font-size: 0.42rem; }
+    .log-title { font-size: 2.5rem; }
+    .questor-block { grid-template-columns: 1fr; }
+  }
+
+  @media print {
+    body { background: white; }
+    .book-surround { padding: 0; }
+    .book { box-shadow: none; max-width: 100%; border: none; }
+    .print-bar { display: none; }
+    .freewrite, .final-write { min-height: 120px; }
+    .stage { page-break-inside: avoid; }
+  }
+</style>
+
+<div class="book-surround">
+<div class="book">
+
+  <!-- TITLE PAGE -->
+  <div class="title-page">
+    <div class="title-page-top">
+      <p class="log-eyebrow">Quest Labs ✦ The Questor's Intensive ✦ 2026</p>
+      <h1 class="log-title">The Curator's<br>Log</h1>
+      <p class="log-subtitle">A Glow Up Journal</p>
+      <p class="log-tagline">
+        This is not a record of what happened.<br>
+        It is a record of who you became while it was happening.<br>
+        The difference matters.
+      </p>
+    </div>
+
+    <div class="questor-block">
+      <div class="fill-field">
+        <span class="fill-label">Questor Name</span>
+        <input class="fill-line" placeholder="your name here" type="text">
+      </div>
+      <div class="fill-field">
+        <span class="fill-label">Black Menagerie Archetype</span>
+        <input class="fill-line" placeholder="to be claimed — Week 1" type="text">
+      </div>
+      <div class="fill-field">
+        <span class="fill-label">Cohort Start Date</span>
+        <input class="fill-line" placeholder="February 2026" type="text">
+      </div>
+      <div class="fill-field">
+        <span class="fill-label">Artifact Zero</span>
+        <input class="fill-line" placeholder="what founding object do you carry?" type="text">
+      </div>
+    </div>
+  </div>
+
+  <!-- HOW TO USE -->
+  <div class="how-to-use">
+    <p class="htu-label">A note on how to use this log</p>
+    <p class="htu-body">
+      Each stage has three moves: a <strong>ritual opening question</strong> to crack you open,
+      a <strong>freewrite space</strong> where you write without editing,
+      and a <strong>carry-forward line</strong> — the one thing you're taking into the next stage.<br><br>
+      Milestone weeks (4, 8, 12) include a Mad Libs strip — a snapshot of your 2032 Joy of Being
+      at that moment in the journey. Don't compare the versions. Let them be sediment.
+      By Week 12, you'll have three layers of the same portrait. That's the point.
+    </p>
+  </div>
+
+  <!-- STAGE 1 -->
+  <div class="stage" id="stage-1">
+    <span class="stage-num">WK 01</span>
+    <div class="stage-gq">GQ Stage 1 · Ordinary World</div>
+    <h2 class="stage-title">The Status Quo You're Standing In</h2>
+    <p class="stage-world">✦ World Skin: The Archive Before the Fire</p>
+    <div class="opening-q">
+      <p class="opening-q-label">Opening Question</p>
+      <p class="opening-q-text">"What does your ordinary world look like — and what about it are you already quietly refusing?"</p>
+    </div>
+    <p class="freewrite-label">Freewrite — no editing, no crossing out</p>
+    <textarea class="freewrite" placeholder="Write here. This is yours. Date it when you come back to read it."></textarea>
+    <div class="carry-row">
+      <span class="carry-prefix">What I'm carrying forward:</span>
+      <input class="carry-line" type="text" placeholder="one sentence, no more">
+    </div>
+  </div>
+
+  <!-- STAGE 2 -->
+  <div class="stage" id="stage-2">
+    <span class="stage-num">WK 02</span>
+    <div class="stage-gq">GQ Stage 2 · Call to Adventure</div>
+    <h2 class="stage-title">The Thing That Called You Here</h2>
+    <p class="stage-world">✦ World Skin: The Threshold Map</p>
+    <div class="opening-q">
+      <p class="opening-q-label">Opening Question</p>
+      <p class="opening-q-text">"What adventure are you secretly already on — before this cohort named it?"</p>
+    </div>
+    <p class="freewrite-label">Freewrite</p>
+    <textarea class="freewrite" placeholder="The call came before the invitation. What did it sound like?"></textarea>
+    <div class="carry-row">
+      <span class="carry-prefix">What I'm carrying forward:</span>
+      <input class="carry-line" type="text" placeholder="one sentence, no more">
+    </div>
+  </div>
+
+  <!-- STAGE 3 -->
+  <div class="stage" id="stage-3">
+    <span class="stage-num">WK 03</span>
+    <div class="stage-gq">GQ Stage 3 · Refusal of the Call</div>
+    <h2 class="stage-title">The Voice That Said Not Yet</h2>
+    <p class="stage-world">✦ World Skin: The Wall With a Door in It</p>
+    <div class="opening-q">
+      <p class="opening-q-label">Opening Question</p>
+      <p class="opening-q-text">"What part of you hesitated — and what was it trying to protect?"</p>
+    </div>
+    <p class="freewrite-label">Freewrite</p>
+    <textarea class="freewrite" placeholder="Be fair to the hesitation. It usually knows something."></textarea>
+    <div class="carry-row">
+      <span class="carry-prefix">What I'm carrying forward:</span>
+      <input class="carry-line" type="text" placeholder="one sentence, no more">
+    </div>
+  </div>
+
+  <!-- STAGE 4 — MILESTONE -->
+  <div class="stage milestone" id="stage-4">
+    <span class="stage-num">WK 04</span>
+    <div class="stage-gq">GQ Stage 4 · Meeting the Mentor <span class="milestone-badge">★ Milestone</span></div>
+    <h2 class="stage-title">Departure</h2>
+    <p class="stage-world">✦ World Skin: The Last Familiar Room</p>
+    <div class="opening-q">
+      <p class="opening-q-label">Opening Question</p>
+      <p class="opening-q-text">"What do you carry out of the ordinary world? What do you leave on the threshold?"</p>
+    </div>
+    <p class="freewrite-label">Freewrite</p>
+    <textarea class="freewrite" placeholder="Departure is not abandonment. It is choosing."></textarea>
+    <div class="carry-row">
+      <span class="carry-prefix">What I'm carrying forward:</span>
+      <input class="carry-line" type="text" placeholder="one sentence, no more">
+    </div>
+    <div class="mad-libs-strip">
+      <p class="ml-strip-label">★ Milestone Mad Libs · Week 4 Snapshot — your 2032 portrait right now</p>
+      <div class="ml-strip-line">
+        <span class="ml-text">In 2032, I am a</span>
+        <input class="ml-input" placeholder="…" type="text">
+        <span class="ml-text">who</span>
+        <input class="ml-input" placeholder="…" type="text">
+      </div>
+      <div class="ml-strip-line">
+        <span class="ml-text">with and for</span>
+        <input class="ml-input" placeholder="…" type="text">
+        <span class="ml-text">inside a world that has learned to</span>
+        <input class="ml-input" placeholder="…" type="text">
+      </div>
+    </div>
+  </div>
+
+  <!-- STAGE 5 -->
+  <div class="stage" id="stage-5">
+    <span class="stage-num">WK 05</span>
+    <div class="stage-gq">GQ Stage 5 · Crossing the Threshold</div>
+    <h2 class="stage-title">The Leap Into the Unknown World</h2>
+    <p class="stage-world">✦ World Skin: The Open Sky Beneath the Map</p>
+    <div class="opening-q">
+      <p class="opening-q-label">Opening Question</p>
+      <p class="opening-q-text">"What does crossing over actually feel like in your body right now?"</p>
+    </div>
+    <p class="freewrite-label">Freewrite</p>
+    <textarea class="freewrite" placeholder="The threshold is a feeling before it's a moment."></textarea>
+    <div class="carry-row">
+      <span class="carry-prefix">What I'm carrying forward:</span>
+      <input class="carry-line" type="text" placeholder="one sentence, no more">
+    </div>
+  </div>
+
+  <!-- STAGE 6 -->
+  <div class="stage" id="stage-6">
+    <span class="stage-num">WK 06</span>
+    <div class="stage-gq">GQ Stage 6 · Tests, Allies, Enemies</div>
+    <h2 class="stage-title">Who and What You Meet in the Unknown</h2>
+    <p class="stage-world">✦ World Skin: The Field of Unexpected Mirrors</p>
+    <div class="opening-q">
+      <p class="opening-q-label">Opening Question</p>
+      <p class="opening-q-text">"Who or what is testing you right now — and what is it revealing about what you actually believe?"</p>
+    </div>
+    <p class="freewrite-label">Freewrite</p>
+    <textarea class="freewrite" placeholder="The test is not the enemy. The test is the teacher."></textarea>
+    <div class="carry-row">
+      <span class="carry-prefix">What I'm carrying forward:</span>
+      <input class="carry-line" type="text" placeholder="one sentence, no more">
+    </div>
+  </div>
+
+  <!-- STAGE 7 -->
+  <div class="stage" id="stage-7">
+    <span class="stage-num">WK 07</span>
+    <div class="stage-gq">GQ Stage 7 · Approach to the Inmost Cave</div>
+    <h2 class="stage-title">The Edge of What You Know About Yourself</h2>
+    <p class="stage-world">✦ World Skin: The Room Behind the Room</p>
+    <div class="opening-q">
+      <p class="opening-q-label">Opening Question</p>
+      <p class="opening-q-text">"What do you know for certain — even when everything else is uncertain?"</p>
+    </div>
+    <p class="freewrite-label">Freewrite</p>
+    <textarea class="freewrite" placeholder="The cave is not a metaphor. Write what's in it."></textarea>
+    <div class="carry-row">
+      <span class="carry-prefix">What I'm carrying forward:</span>
+      <input class="carry-line" type="text" placeholder="one sentence, no more">
+    </div>
+  </div>
+
+  <!-- STAGE 8 — MILESTONE -->
+  <div class="stage milestone" id="stage-8">
+    <span class="stage-num">WK 08</span>
+    <div class="stage-gq">GQ Stage 8 · The Ordeal <span class="milestone-badge">★ Milestone</span></div>
+    <h2 class="stage-title">Crossing</h2>
+    <p class="stage-world">✦ World Skin: The Burning and the Building</p>
+    <div class="opening-q">
+      <p class="opening-q-label">Opening Question</p>
+      <p class="opening-q-text">"What have you had to let die in order to keep becoming? What grew from it?"</p>
+    </div>
+    <p class="freewrite-label">Freewrite</p>
+    <textarea class="freewrite" placeholder="The ordeal is the pivot. You don't get to skip it."></textarea>
+    <div class="carry-row">
+      <span class="carry-prefix">What I'm carrying forward:</span>
+      <input class="carry-line" type="text" placeholder="one sentence, no more">
+    </div>
+    <div class="mad-libs-strip">
+      <p class="ml-strip-label">★ Milestone Mad Libs · Week 8 Snapshot — compare gently with Week 4</p>
+      <div class="ml-strip-line">
+        <span class="ml-text">In 2032, I am a</span>
+        <input class="ml-input" placeholder="…" type="text">
+        <span class="ml-text">who</span>
+        <input class="ml-input" placeholder="…" type="text">
+      </div>
+      <div class="ml-strip-line">
+        <span class="ml-text">I am known for my</span>
+        <input class="ml-input" placeholder="…" type="text">
+        <span class="ml-text">I work at the intersection of</span>
+        <input class="ml-input" placeholder="…" type="text">
+        <span class="ml-text">and</span>
+        <input class="ml-input" placeholder="…" type="text">
+      </div>
+    </div>
+  </div>
+
+  <!-- STAGE 9 -->
+  <div class="stage" id="stage-9">
+    <span class="stage-num">WK 09</span>
+    <div class="stage-gq">GQ Stage 9 · Reward</div>
+    <h2 class="stage-title">What You Found in the Fire</h2>
+    <p class="stage-world">✦ World Skin: The Object Worth Carrying</p>
+    <div class="opening-q">
+      <p class="opening-q-label">Opening Question</p>
+      <p class="opening-q-text">"What did the ordeal give you that you didn't come in with? Name it exactly."</p>
+    </div>
+    <p class="freewrite-label">Freewrite</p>
+    <textarea class="freewrite" placeholder="The reward is rarely what you expected. Describe what you actually got."></textarea>
+    <div class="carry-row">
+      <span class="carry-prefix">What I'm carrying forward:</span>
+      <input class="carry-line" type="text" placeholder="one sentence, no more">
+    </div>
+  </div>
+
+  <!-- STAGE 10 -->
+  <div class="stage" id="stage-10">
+    <span class="stage-num">WK 10</span>
+    <div class="stage-gq">GQ Stage 10 · The Road Back</div>
+    <h2 class="stage-title">Returning With What You Now Know</h2>
+    <p class="stage-world">✦ World Skin: The Same Door, Different Eyes</p>
+    <div class="opening-q">
+      <p class="opening-q-label">Opening Question</p>
+      <p class="opening-q-text">"What can you now see in your ordinary world that you couldn't see when you entered this one?"</p>
+    </div>
+    <p class="freewrite-label">Freewrite</p>
+    <textarea class="freewrite" placeholder="The road back is not the same road. Write what's different."></textarea>
+    <div class="carry-row">
+      <span class="carry-prefix">What I'm carrying forward:</span>
+      <input class="carry-line" type="text" placeholder="one sentence, no more">
+    </div>
+  </div>
+
+  <!-- STAGE 11 -->
+  <div class="stage" id="stage-11">
+    <span class="stage-num">WK 11</span>
+    <div class="stage-gq">GQ Stage 11 · Resurrection</div>
+    <h2 class="stage-title">The Final Threshold</h2>
+    <p class="stage-world">✦ World Skin: The Person Who Stayed and the Person Who Left</p>
+    <div class="opening-q">
+      <p class="opening-q-label">Opening Question</p>
+      <p class="opening-q-text">"Who couldn't have done what you're about to do? What separates you from that person now?"</p>
+    </div>
+    <p class="freewrite-label">Freewrite</p>
+    <textarea class="freewrite" placeholder="Write to the person you were in Week 1."></textarea>
+    <div class="carry-row">
+      <span class="carry-prefix">What I'm carrying forward:</span>
+      <input class="carry-line" type="text" placeholder="one sentence, no more">
+    </div>
+  </div>
+
+  <!-- STAGE 12 — FINAL -->
+  <div class="stage milestone" id="stage-12">
+    <span class="stage-num">WK 12</span>
+    <div class="stage-gq">GQ Stage 12 · Return With the Elixir <span class="milestone-badge">★ Final</span></div>
+    <h2 class="stage-title">Emergence</h2>
+    <p class="stage-world">✦ World Skin: The World You Made Real</p>
+    <div class="opening-q">
+      <p class="opening-q-label">Opening Question</p>
+      <p class="opening-q-text">"What are you bringing back? Who needs it? What will you do with the fact that you changed?"</p>
+    </div>
+    <p class="freewrite-label">Freewrite</p>
+    <textarea class="freewrite" placeholder="Write the full arc. You have the whole story now."></textarea>
+    <div class="carry-row">
+      <span class="carry-prefix">What I'm carrying into 2032:</span>
+      <input class="carry-line" type="text" placeholder="one sentence. make it count.">
+    </div>
+    <div class="mad-libs-strip">
+      <p class="ml-strip-label">★ Final Mad Libs · Week 12 · Your Complete 2032 Joy of Being</p>
+      <div class="ml-strip-line">
+        <span class="ml-text">In 2032, I am a</span>
+        <input class="ml-input" placeholder="…" type="text">
+        <span class="ml-text">who</span>
+        <input class="ml-input" placeholder="…" type="text">
+      </div>
+      <div class="ml-strip-line">
+        <span class="ml-text">with and for</span>
+        <input class="ml-input" placeholder="…" type="text">
+        <span class="ml-text">inside a world that has learned to</span>
+        <input class="ml-input" placeholder="…" type="text">
+      </div>
+      <div class="ml-strip-line">
+        <span class="ml-text">The problem I exist to dissolve is</span>
+        <input class="ml-input" placeholder="…" type="text">
+      </div>
+      <div class="ml-strip-line">
+        <span class="ml-text">What I couldn't have known in 2025 was</span>
+        <input class="ml-input" placeholder="…" style="min-width:240px;" type="text">
+      </div>
+    </div>
+  </div>
+
+  <div class="ornament">✦ ✦ ✦</div>
+
+  <!-- CLOSING PAGE -->
+  <div class="closing-page">
+    <p class="closing-label">After the Journey</p>
+    <h2 class="closing-title">A Note to the Person<br>Who Reads This <em>Later</em></h2>
+    <p class="closing-q">
+      "When you open this again — in 2028, or 2032, or on a Tuesday in a life you didn't predict —
+      what do you want to have told yourself right now?"
+    </p>
+    <textarea class="final-write" placeholder="Write it here. Date it. Leave it."></textarea>
+  </div>
+
+  <!-- PRINT BAR -->
+  <div class="print-bar">
+    <button class="action-btn" onclick="window.print()">Print / Save as PDF</button>
+    <button class="action-btn primary" onclick="alert('Export coming in Questor Kit v2 — for now, Print → Save as PDF preserves all your entries.')">Export My Log</button>
+  </div>
+
+</div>
+</div>
+
+<script is:inline>
+function saveAll() {
+  const data = {};
+  document.querySelectorAll('textarea, input[type=text]').forEach((el, i) => {
+    data[`field_${i}`] = el.value;
+  });
+  try { localStorage.setItem('curators_log', JSON.stringify(data)); } catch(e) {}
+}
+
+function loadAll() {
+  try {
+    const data = JSON.parse(localStorage.getItem('curators_log') || '{}');
+    document.querySelectorAll('textarea, input[type=text]').forEach((el, i) => {
+      if (data[`field_${i}`]) el.value = data[`field_${i}`];
+    });
+  } catch(e) {}
+}
+
+document.querySelectorAll('textarea, input[type=text]').forEach(el => {
+  el.addEventListener('input', saveAll);
+});
+
+loadAll();
+</script>
+
+</Layout>

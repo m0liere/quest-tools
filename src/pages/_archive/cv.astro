@@ -1,0 +1,755 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Questor CV" currentPage="/cv">
+
+<style>
+  .cv-page {
+    position: relative;
+    z-index: 1;
+    padding: 3rem 2rem 6rem;
+  }
+
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+  }
+
+  /* TOP BAR */
+  .top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(124,58,237,0.25);
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .questor-id {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.5rem, 6vw, 5rem);
+    color: #A78BFA;
+    font-style: italic;
+    line-height: 0.9;
+  }
+
+  .questor-id .questor-num-display {
+    color: #BE123C;
+  }
+
+  .questor-meta {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .questor-meta input {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(124,58,237,0.35);
+    color: #FDFCFF;
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.3rem;
+    text-align: right;
+    width: 220px;
+    padding: 0.25rem 0;
+    outline: none;
+  }
+
+  .questor-meta input::placeholder { color: rgba(167,139,250,0.25); }
+
+  .questor-geo-input {
+    display: block;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(124,58,237,0.2);
+    color: rgba(204,251,241,0.6);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    text-align: right;
+    width: 220px;
+    padding: 0.25rem 0;
+    outline: none;
+  }
+
+  .questor-geo-input::placeholder { color: rgba(204,251,241,0.2); }
+
+  /* Questor number input row */
+  .questor-num-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+  }
+
+  .questor-num-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.5rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(124,58,237,0.5);
+  }
+
+  .questor-num-input {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(190,18,60,0.4);
+    color: #BE123C;
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 2.5rem;
+    width: 60px;
+    text-align: center;
+    outline: none;
+    padding: 0;
+  }
+
+  .questor-num-input::placeholder { color: rgba(190,18,60,0.2); }
+
+  /* SECTION HEADERS */
+  .section-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.52rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: #D97706;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(217,119,6,0.2);
+  }
+
+  /* DREAM JOB */
+  .dream-job-section {
+    margin-bottom: 2rem;
+    padding: 2rem;
+    border: 1px solid rgba(124,58,237,0.2);
+    background: rgba(124,58,237,0.03);
+  }
+
+  .dream-job-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+    color: #A78BFA;
+    font-style: italic;
+    margin-bottom: 0.5rem;
+  }
+
+  .prompt {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.62rem;
+    color: rgba(253,252,255,0.4);
+    margin-bottom: 0.75rem;
+    line-height: 1.7;
+    letter-spacing: 0.03em;
+  }
+
+  textarea {
+    width: 100%;
+    background: rgba(253,252,255,0.03);
+    border: 1px solid rgba(124,58,237,0.15);
+    color: #FDFCFF;
+    font-family: 'Mulish', sans-serif;
+    font-size: 0.85rem;
+    line-height: 1.8;
+    padding: 1rem;
+    resize: vertical;
+    outline: none;
+    min-height: 100px;
+    transition: border-color 0.2s;
+  }
+
+  textarea:focus { border-color: rgba(124,58,237,0.4); }
+  textarea::placeholder { color: rgba(253,252,255,0.2); font-style: italic; }
+
+  /* CV GRID */
+  .cv-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .cv-block {
+    padding: 1.5rem;
+    border: 1px solid rgba(124,58,237,0.15);
+  }
+
+  .cv-block-title {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1rem;
+    color: #A78BFA;
+    margin-bottom: 0.5rem;
+  }
+
+  /* STRENGTHS / GROWTH */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .strength-block {
+    padding: 1.5rem;
+    border: 1px solid rgba(13,148,136,0.3);
+    background: rgba(13,148,136,0.04);
+  }
+
+  .growth-block {
+    padding: 1.5rem;
+    border: 1px solid rgba(167,139,250,0.25);
+    background: rgba(124,58,237,0.04);
+  }
+
+  .block-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+
+  .strength-block .block-title { color: #0D9488; }
+  .growth-block .block-title { color: #A78BFA; }
+
+  .list-input {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .list-input li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    font-family: 'Mulish', sans-serif;
+    font-size: 0.78rem;
+    color: rgba(253,252,255,0.7);
+  }
+
+  .list-input li::before {
+    content: '→';
+    color: #D97706;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .list-input input {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(124,58,237,0.2);
+    color: #FDFCFF;
+    font-family: 'Mulish', sans-serif;
+    font-size: 0.75rem;
+    width: 100%;
+    padding: 0.15rem 0;
+    outline: none;
+  }
+
+  .list-input input::placeholder { color: rgba(253,252,255,0.2); font-style: italic; }
+
+  /* SKILLS */
+  .skills-section {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    border: 1px solid rgba(124,58,237,0.15);
+  }
+
+  .skills-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
+
+  .skill-tag {
+    padding: 0.35rem 0.85rem;
+    border: 1px solid rgba(124,58,237,0.25);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.08em;
+    color: rgba(167,139,250,0.65);
+    border-radius: 100px;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+  }
+
+  .skill-tag:hover, .skill-tag.active {
+    background: rgba(124,58,237,0.15);
+    border-color: #7C3AED;
+    color: #A78BFA;
+  }
+
+  .skills-custom {
+    margin-top: 0.75rem;
+  }
+
+  .skills-custom input {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(124,58,237,0.2);
+    color: #FDFCFF;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    width: 100%;
+    padding: 0.25rem 0;
+    outline: none;
+  }
+
+  .skills-custom input::placeholder { color: rgba(253,252,255,0.2); font-style: italic; }
+
+  /* ROOM SECTION */
+  .room-section {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    border: 1px solid rgba(190,18,60,0.2);
+    background: rgba(190,18,60,0.03);
+  }
+
+  .dyad-box {
+    padding: 1rem;
+    border: 1px solid rgba(124,58,237,0.2);
+    margin-top: 0.75rem;
+  }
+
+  .dyad-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.52rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #BE123C;
+    margin-bottom: 0.5rem;
+  }
+
+  .dyad-name {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.1rem;
+    color: #FDFCFF;
+  }
+
+  .dyad-checkin {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.56rem;
+    color: rgba(253,252,255,0.4);
+    margin-top: 0.25rem;
+    line-height: 1.6;
+    letter-spacing: 0.03em;
+  }
+
+  /* UNLEARNING */
+  .unlearn-section {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    border: 1px solid rgba(167,139,250,0.2);
+  }
+
+  /* XP BAR */
+  .xp-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    border: 1px solid rgba(217,119,6,0.25);
+    background: rgba(217,119,6,0.03);
+  }
+
+  .xp-cell { text-align: center; }
+
+  .xp-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    color: #D97706;
+    font-style: italic;
+    line-height: 1;
+  }
+
+  .xp-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.52rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(217,119,6,0.65);
+    margin-top: 0.25rem;
+  }
+
+  .xp-input {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(217,119,6,0.3);
+    color: #D97706;
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    font-style: italic;
+    width: 80px;
+    text-align: center;
+    outline: none;
+  }
+
+  /* MOVES */
+  .moves-section { margin-bottom: 2rem; }
+
+  .moves-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1rem;
+    margin-top: 0.75rem;
+  }
+
+  .move-card {
+    padding: 1.25rem;
+    border: 1px solid rgba(124,58,237,0.15);
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: rgba(13,11,30,0.6);
+  }
+
+  .move-card:hover {
+    border-color: #7C3AED;
+    background: rgba(124,58,237,0.08);
+  }
+
+  .move-card.used {
+    background: rgba(124,58,237,0.1);
+    border-color: #7C3AED;
+  }
+
+  .move-icon { font-size: 1.75rem; margin-bottom: 0.5rem; }
+
+  .move-name {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 0.9rem;
+    color: #A78BFA;
+    margin-bottom: 0.25rem;
+  }
+
+  .move-pts {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    color: rgba(190,18,60,0.7);
+    letter-spacing: 0.08em;
+  }
+
+  /* ACTIONS */
+  .actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(124,58,237,0.15);
+  }
+
+  .btn {
+    padding: 0.75rem 2rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid rgba(124,58,237,0.4);
+    color: #A78BFA;
+    background: transparent;
+    border-radius: 2px;
+  }
+
+  .btn:hover {
+    background: rgba(124,58,237,0.12);
+    border-color: #7C3AED;
+    color: #EDE9FE;
+  }
+
+  .btn-primary {
+    background: rgba(190,18,60,0.3);
+    border-color: rgba(190,18,60,0.5);
+    color: #FDFCFF;
+  }
+
+  .btn-primary:hover {
+    background: rgba(190,18,60,0.5);
+  }
+
+  @media (max-width: 600px) {
+    .cv-grid, .two-col, .moves-grid { grid-template-columns: 1fr; }
+    .xp-bar { grid-template-columns: 1fr 1fr; }
+  }
+
+  @media print {
+    body { background: white; color: black; padding: 1rem; }
+    .actions { display: none; }
+    textarea, input { border-bottom-color: #ccc !important; }
+  }
+</style>
+
+<div class="cv-page">
+<div class="container">
+
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div>
+      <div class="questor-id">
+        Questor<br>
+        <span class="questor-num-display" id="questor-number">_</span>
+      </div>
+      <div class="questor-num-row">
+        <span class="questor-num-label">Questor #</span>
+        <input class="questor-num-input" type="text" id="questor-num-input" placeholder="1" maxlength="2" oninput="updateQuestorNum(this.value)">
+      </div>
+    </div>
+    <div class="questor-meta">
+      <input type="text" id="name-input" placeholder="Your name" oninput="updateHeader()">
+      <input type="text" class="questor-geo-input" id="geo-input" placeholder="City, Country">
+      <input type="text" class="questor-geo-input" id="dyad-input" placeholder="Dyad partner name" style="margin-top:0.25rem; color:rgba(190,18,60,0.7);">
+    </div>
+  </div>
+
+  <!-- XP Tracker -->
+  <div class="xp-bar">
+    <div class="xp-cell">
+      <input class="xp-input" type="number" value="0" id="xp-count" min="0">
+      <div class="xp-label">XP Points</div>
+    </div>
+    <div class="xp-cell">
+      <input class="xp-input" type="number" value="0" id="ap-count" min="0" style="color:#0D9488;border-bottom-color:rgba(13,148,136,0.3);">
+      <div class="xp-label" style="color:rgba(13,148,136,0.65);">Assist Points</div>
+    </div>
+    <div class="xp-cell">
+      <div class="xp-num" id="total-count" style="color:#BE123C;">0</div>
+      <div class="xp-label" style="color:rgba(190,18,60,0.65);">Total</div>
+    </div>
+  </div>
+
+  <!-- Dream Job Description -->
+  <div class="dream-job-section">
+    <div class="section-label">✦ Dream Job Description</div>
+    <div class="dream-job-title">What would I be paid to do<br>if money followed meaning?</div>
+    <p class="prompt">Not a job title. A description of how you show up. What skills you bring. What you create. What world you're building. Write it like a job posting you'd actually apply for — written by your future self, for your present self.</p>
+    <textarea id="dream-job" rows="6" placeholder="I am looking for someone who... brings the capacity to... creates conditions where... has spent their life learning how to... is building toward..."></textarea>
+  </div>
+
+  <!-- CV of Life -->
+  <div class="section-label">✦ CV of Life — Curriculae Vitae</div>
+  <p class="prompt" style="margin-bottom:1rem;">Not what institutions certified. What life has taught you. The experiences, losses, detours, and discoveries that are actually your credentials.</p>
+
+  <div class="cv-grid">
+    <div class="cv-block">
+      <div class="cv-block-title">What I've built / made / grown</div>
+      <textarea rows="4" placeholder="Things that exist because of me..."></textarea>
+    </div>
+    <div class="cv-block">
+      <div class="cv-block-title">What I've survived / composted</div>
+      <textarea rows="4" placeholder="What I've metabolized into wisdom..."></textarea>
+    </div>
+    <div class="cv-block">
+      <div class="cv-block-title">What I know in my body</div>
+      <textarea rows="4" placeholder="No institution certified this, but..."></textarea>
+    </div>
+    <div class="cv-block">
+      <div class="cv-block-title">What I'm still becoming</div>
+      <textarea rows="4" placeholder="The work that's not done yet..."></textarea>
+    </div>
+  </div>
+
+  <!-- Strengths & Growth -->
+  <div class="section-label">✦ Skills in the Space</div>
+  <div class="two-col">
+    <div class="strength-block">
+      <div class="block-title">🌳 Strengths — What I bring</div>
+      <ul class="list-input">
+        <li><input type="text" placeholder="I can..."></li>
+        <li><input type="text" placeholder="I am known for..."></li>
+        <li><input type="text" placeholder="People come to me when..."></li>
+        <li><input type="text" placeholder="My superpower is..."></li>
+        <li><input type="text" placeholder="I've been doing this since..."></li>
+      </ul>
+    </div>
+    <div class="growth-block">
+      <div class="block-title">🌱 Growth Areas — What I'm learning</div>
+      <ul class="list-input">
+        <li><input type="text" placeholder="I'm practicing..."></li>
+        <li><input type="text" placeholder="I want to get better at..."></li>
+        <li><input type="text" placeholder="I'm unlearning..."></li>
+        <li><input type="text" placeholder="I need support with..."></li>
+        <li><input type="text" placeholder="The edge I'm working..."></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Skills Tags -->
+  <div class="skills-section">
+    <div class="section-label">✦ Skills I'm Bringing to the Room</div>
+    <p class="prompt">Click what applies. Add your own below.</p>
+    <div class="skills-tags" id="skills-tags">
+      <span class="skill-tag" onclick="toggleSkill(this)">Facilitation</span>
+      <span class="skill-tag" onclick="toggleSkill(this)">Research</span>
+      <span class="skill-tag" onclick="toggleSkill(this)">Futures Thinking</span>
+      <span class="skill-tag" onclick="toggleSkill(this)">Community Building</span>
+      <span class="skill-tag" onclick="toggleSkill(this)">Game Design</span>
+      <span class="skill-tag" onclick="toggleSkill(this)">Education</span>
+      <span class="skill-tag" onclick="toggleSkill(this)">Storytelling</span>
+      <span class="skill-tag" onclick="toggleSkill(this)">Systems Thinking</span>
+      <span class="skill-tag" onclick="toggleSkill(this)">Music / Sound</span>
+      <span class="skill-tag" onclick="toggleSkill(this)">Visual Art</span>
+      <span class="skill-tag" onclick="toggleSkill(this)">Movement / Body</span>
+      <span class="skill-tag" onclick="toggleSkill(this)">Writing</span>
+      <span class="skill-tag" onclick="toggleSkill(this)">Tech / Code</span>
+      <span class="skill-tag" onclick="toggleSkill(this)">Organizing</span>
+      <span class="skill-tag" onclick="toggleSkill(this)">Mentoring</span>
+      <span class="skill-tag" onclick="toggleSkill(this)">Business Dev</span>
+      <span class="skill-tag" onclick="toggleSkill(this)">Healing Arts</span>
+      <span class="skill-tag" onclick="toggleSkill(this)">Language / Translation</span>
+      <span class="skill-tag" onclick="toggleSkill(this)">Policy / Advocacy</span>
+      <span class="skill-tag" onclick="toggleSkill(this)">Finance / Economics</span>
+    </div>
+    <div class="skills-custom">
+      <input type="text" placeholder="Add your own skills, separated by commas...">
+    </div>
+  </div>
+
+  <!-- Un°learning Capital -->
+  <div class="unlearn-section">
+    <div class="section-label">✦ Un°learning Capital</div>
+    <p class="prompt">What have you had to unlearn to get here? What did institutions, systems, or people teach you that you've had to compost?</p>
+    <textarea rows="4" placeholder="I was taught that... but I've learned that...&#10;I used to believe... and I'm releasing...&#10;The thing I'm still unlearning is..."></textarea>
+  </div>
+
+  <!-- Who's In The Room -->
+  <div class="room-section">
+    <div class="section-label">✦ Who's In The Room</div>
+    <p class="prompt">Your dyad partner for 15-minute weekly check-ins. XP + AP points for scheduling 30–60 min sessions.</p>
+    <div class="dyad-box">
+      <div class="dyad-label">My Dyad Partner</div>
+      <div class="dyad-name" id="dyad-display">—</div>
+      <div class="dyad-checkin">📅 15-min check-in weekly · +10 XP for scheduling · +20 XP for 30–60 min session · +10 AP if you help them break through something</div>
+    </div>
+  </div>
+
+  <!-- Game Moves -->
+  <div class="moves-section">
+    <div class="section-label">✦ Your Three Moves</div>
+    <p class="prompt">When someone shares their CV of Life, these are the moves available to the room.</p>
+    <div class="moves-grid">
+      <div class="move-card" onclick="logMove('flowers', 10, 5)">
+        <div class="move-icon">🌸</div>
+        <div class="move-name">Give Flowers</div>
+        <div class="move-pts">+10 XP · +5 AP</div>
+      </div>
+      <div class="move-card" onclick="logMove('grief', 15, 10)">
+        <div class="move-icon">🕊️</div>
+        <div class="move-name">Grief & Grace</div>
+        <div class="move-pts">+15 XP · +10 AP</div>
+      </div>
+      <div class="move-card" onclick="logMove('seed', 20, 20)">
+        <div class="move-icon">🌱</div>
+        <div class="move-name">Seed New Futures</div>
+        <div class="move-pts">+20 XP · +20 AP</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="actions">
+    <button class="btn" onclick="window.print()">Print / Export PDF</button>
+    <button class="btn btn-primary" onclick="saveToClipboard()">Copy My Card</button>
+  </div>
+
+</div>
+</div>
+
+<script is:inline>
+  // Dyad display from input
+  document.getElementById('dyad-input').addEventListener('input', function() {
+    document.getElementById('dyad-display').textContent = this.value || '—';
+  });
+
+  // Questor number input
+  function updateQuestorNum(val) {
+    document.getElementById('questor-number').textContent = val || '_';
+  }
+
+  // XP total
+  function updateTotal() {
+    const xp = parseInt(document.getElementById('xp-count').value) || 0;
+    const ap = parseInt(document.getElementById('ap-count').value) || 0;
+    document.getElementById('total-count').textContent = xp + ap;
+  }
+
+  document.getElementById('xp-count').addEventListener('input', updateTotal);
+  document.getElementById('ap-count').addEventListener('input', updateTotal);
+
+  // Log a move
+  function logMove(type, xp, ap) {
+    const xpInput = document.getElementById('xp-count');
+    const apInput = document.getElementById('ap-count');
+    xpInput.value = parseInt(xpInput.value || 0) + xp;
+    apInput.value = parseInt(apInput.value || 0) + ap;
+    updateTotal();
+
+    const msgs = {
+      flowers: '🌸 Flowers given. +' + xp + ' XP · +' + ap + ' AP',
+      grief: '🕊️ Grief & Grace held. +' + xp + ' XP · +' + ap + ' AP',
+      seed: '🌱 Future seeded. +' + xp + ' XP · +' + ap + ' AP'
+    };
+    alert(msgs[type]);
+  }
+
+  // Toggle skill tags
+  function toggleSkill(el) {
+    el.classList.toggle('active');
+  }
+
+  // Copy card to clipboard
+  function saveToClipboard() {
+    const name = document.getElementById('name-input').value || 'Questor';
+    const geo = document.getElementById('geo-input').value || '';
+    const dreamJob = document.getElementById('dream-job').value || '';
+    const xp = document.getElementById('xp-count').value;
+    const ap = document.getElementById('ap-count').value;
+
+    const activeSkills = [...document.querySelectorAll('.skill-tag.active')].map(t => t.textContent).join(', ');
+
+    const card = `QUESTOR CARD — ${name} · ${geo}
+XP: ${xp} · AP: ${ap}
+
+DREAM JOB:
+${dreamJob}
+
+SKILLS IN THE ROOM:
+${activeSkills}
+
+questlabs.online`;
+
+    navigator.clipboard.writeText(card).then(() => {
+      alert('Questor card copied to clipboard! ✓');
+    });
+  }
+
+  function updateHeader() {
+    // placeholder for future use
+  }
+</script>
+
+</Layout>

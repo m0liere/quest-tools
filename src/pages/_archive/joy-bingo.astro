@@ -1,0 +1,862 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Joy Bingo" currentPage="/joy-bingo">
+
+<style is:global>
+  :root {
+    --card-bg: #12102A;
+    --cell-bg: #0E0C22;
+    --scratch: #8C7556;
+    --scratch-shine: #BEA070;
+    --scratch-dark: #6B5230;
+    --gold: #C8A84B;
+    --gold-light: #EDD97A;
+    --gold-dim: rgba(200,168,75,0.18);
+    --cream: #F4EFE5;
+  }
+
+  .joy-page {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    padding: 2.5rem 1rem 5rem;
+    overflow-x: hidden;
+  }
+
+  /* Starfield */
+  .joy-page::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 8% 18%, rgba(167,139,250,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 27% 63%, rgba(255,255,255,0.2) 0%, transparent 100%),
+      radial-gradient(1px 1px at 52% 9%, rgba(255,255,255,0.35) 0%, transparent 100%),
+      radial-gradient(1px 1px at 73% 82%, rgba(167,139,250,0.25) 0%, transparent 100%),
+      radial-gradient(1px 1px at 88% 44%, rgba(255,255,255,0.25) 0%, transparent 100%),
+      radial-gradient(2px 2px at 22% 37%, rgba(200,168,75,0.2) 0%, transparent 100%),
+      radial-gradient(2px 2px at 67% 22%, rgba(124,58,237,0.2) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrap {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 780px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+  }
+
+  /* HEADER */
+  .header { text-align: center; }
+
+  .eyebrow {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--gold);
+    opacity: 0.7;
+    margin-bottom: 0.7rem;
+  }
+
+  .main-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.4rem, 7vw, 4.2rem);
+    color: var(--cream);
+    line-height: 1;
+    text-shadow: 0 0 60px rgba(200,168,75,0.12);
+  }
+
+  .main-title em {
+    display: block;
+    font-style: italic;
+    color: var(--gold);
+    font-size: 0.6em;
+    letter-spacing: 0.05em;
+  }
+
+  .subtitle {
+    margin-top: 0.6rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.14em;
+    color: rgba(244,239,229,0.38);
+    text-transform: uppercase;
+  }
+
+  /* HOW IT WORKS */
+  .howto {
+    display: flex;
+    gap: 0;
+    flex-wrap: wrap;
+    border: 1px solid rgba(200,168,75,0.12);
+    width: 100%;
+  }
+
+  .howto-step {
+    flex: 1;
+    min-width: 160px;
+    padding: 1rem 1.2rem;
+    border-right: 1px solid rgba(200,168,75,0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .howto-step:last-child { border-right: none; }
+
+  .step-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.52rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    opacity: 0.6;
+  }
+
+  .step-text {
+    font-family: 'Mulish', sans-serif;
+    font-size: 0.78rem;
+    color: rgba(244,239,229,0.5);
+    line-height: 1.5;
+  }
+
+  /* TASK PANEL */
+  .task-panel {
+    width: 100%;
+    background: rgba(18,16,42,0.9);
+    border: 1px solid rgba(200,168,75,0.15);
+    padding: 1.4rem 1.6rem;
+  }
+
+  .task-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  .task-header-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    opacity: 0.7;
+  }
+
+  .task-progress {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: rgba(244,239,229,0.3);
+  }
+
+  .task-progress span { color: var(--gold); }
+
+  .tasks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.5rem;
+  }
+
+  .task-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.6rem 0.8rem;
+    background: rgba(200,168,75,0.04);
+    border: 1px solid rgba(200,168,75,0.12);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+  }
+
+  .task-btn:hover:not(.done) {
+    border-color: rgba(200,168,75,0.35);
+    background: rgba(200,168,75,0.08);
+  }
+
+  .task-btn.done { opacity: 0.45; cursor: default; border-color: rgba(200,168,75,0.06); }
+
+  .task-check {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    border: 1px solid rgba(200,168,75,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    color: var(--gold);
+    transition: all 0.2s;
+  }
+
+  .task-btn.done .task-check {
+    background: rgba(200,168,75,0.2);
+    border-color: var(--gold);
+  }
+
+  .task-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.04em;
+    color: rgba(244,239,229,0.6);
+    line-height: 1.4;
+  }
+
+  .task-fw {
+    font-size: 0.46rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-top: 1px;
+    opacity: 0.6;
+  }
+
+  .fw-fresh { color: #5ECFCE; }
+  .fw-steep { color: #F07098; }
+  .fw-bm    { color: #B07EFF; }
+  .fw-hobb  { color: #F0A060; }
+  .fw-aw    { color: var(--gold-light); }
+
+  /* BINGO CARD */
+  .card-shell {
+    width: 100%;
+    background: linear-gradient(155deg, #15122E, #0C0A1E);
+    border: 1px solid rgba(200,168,75,0.18);
+    padding: 1.4rem;
+    box-shadow:
+      0 0 0 1px rgba(0,0,0,0.6),
+      0 24px 70px rgba(0,0,0,0.7),
+      inset 0 1px 0 rgba(200,168,75,0.08);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card-shell::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse 60% 40% at 25% 15%, rgba(124,58,237,0.07), transparent),
+      radial-gradient(ellipse 50% 40% at 75% 85%, rgba(13,148,136,0.05), transparent);
+  }
+
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 1px solid rgba(200,168,75,0.1);
+  }
+
+  .card-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.54rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(200,168,75,0.6);
+  }
+
+  .card-counter {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.58rem;
+    color: rgba(244,239,229,0.3);
+  }
+
+  .card-counter b { color: var(--gold); }
+
+  /* GRID */
+  .bingo-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 5px;
+    margin-bottom: 1rem;
+  }
+
+  /* CELL */
+  .cell {
+    aspect-ratio: 1;
+    position: relative;
+    border-radius: 1px;
+    overflow: hidden;
+  }
+
+  .cell-inner {
+    position: absolute;
+    inset: 0;
+    background: var(--cell-bg);
+    border: 1px solid rgba(200,168,75,0.12);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+    text-align: center;
+    z-index: 1;
+  }
+
+  .cell-icon { font-size: 1.2rem; line-height: 1; margin-bottom: 3px; }
+
+  .cell-text {
+    font-size: 0.42rem;
+    font-family: 'Space Mono', monospace;
+    color: rgba(244,239,229,0.7);
+    line-height: 1.3;
+    letter-spacing: 0.02em;
+  }
+
+  .cell-tag {
+    margin-top: 4px;
+    font-size: 0.36rem;
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 1px 4px;
+    border-radius: 1px;
+  }
+
+  .tag-fresh { background: rgba(13,148,136,0.2); color: #5ECFCE; }
+  .tag-steep { background: rgba(190,18,60,0.18); color: #F07098; }
+  .tag-bm    { background: rgba(124,58,237,0.22); color: #B07EFF; }
+  .tag-hobb  { background: rgba(217,119,6,0.18); color: #F0A060; }
+  .tag-aw    { background: rgba(200,168,75,0.14); color: var(--gold-light); }
+  .tag-free  { background: rgba(200,168,75,0.2); color: var(--gold); }
+
+  .cell.is-free .cell-inner {
+    border-color: rgba(200,168,75,0.35);
+    background: linear-gradient(135deg, rgba(200,168,75,0.08), rgba(124,58,237,0.08));
+  }
+  .cell.is-free .cell-icon { font-size: 1.5rem; }
+
+  .cell.bingo-lit .cell-inner {
+    border-color: var(--gold);
+    animation: bingoGlow 1.8s ease-in-out infinite alternate;
+  }
+
+  @keyframes bingoGlow {
+    from { box-shadow: inset 0 0 8px rgba(200,168,75,0.1); }
+    to   { box-shadow: inset 0 0 22px rgba(200,168,75,0.35), 0 0 10px rgba(200,168,75,0.2); }
+  }
+
+  /* SCRATCH OVERLAY */
+  .scratch-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  .scratch-corner {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    transition: clip-path 0.55s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.55s ease;
+  }
+
+  .sc-tl {
+    clip-path: polygon(0% 0%, 50% 0%, 50% 50%, 0% 50%);
+    background: linear-gradient(135deg, var(--scratch-shine) 0%, var(--scratch) 50%, var(--scratch-dark) 100%);
+  }
+  .sc-tr {
+    clip-path: polygon(50% 0%, 100% 0%, 100% 50%, 50% 50%);
+    background: linear-gradient(225deg, var(--scratch-shine) 0%, var(--scratch) 50%, var(--scratch-dark) 100%);
+  }
+  .sc-bl {
+    clip-path: polygon(0% 50%, 50% 50%, 50% 100%, 0% 100%);
+    background: linear-gradient(45deg, var(--scratch-shine) 0%, var(--scratch) 50%, var(--scratch-dark) 100%);
+  }
+  .sc-br {
+    clip-path: polygon(50% 50%, 100% 50%, 100% 100%, 50% 100%);
+    background: linear-gradient(315deg, var(--scratch-shine) 0%, var(--scratch) 50%, var(--scratch-dark) 100%);
+  }
+
+  .scratch-corner::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      42deg, transparent, transparent 2px,
+      rgba(0,0,0,0.05) 2px, rgba(0,0,0,0.05) 4px
+    );
+  }
+
+  .sc-tl::after {
+    content: '✦';
+    position: absolute;
+    top: 30%;
+    left: 30%;
+    transform: translate(-50%, -50%);
+    font-size: 0.8rem;
+    color: rgba(10,10,20,0.3);
+    text-shadow: 0 1px 0 rgba(255,255,255,0.15);
+  }
+
+  .sc-tl.gone { clip-path: polygon(0% 0%, 0% 0%, 0% 0%, 0% 0%); opacity: 0; }
+  .sc-tr.gone { clip-path: polygon(100% 0%, 100% 0%, 100% 0%, 100% 0%); opacity: 0; }
+  .sc-bl.gone { clip-path: polygon(0% 100%, 0% 100%, 0% 100%, 0% 100%); opacity: 0; }
+  .sc-br.gone { clip-path: polygon(100% 100%, 100% 100%, 100% 100%, 100% 100%); opacity: 0; }
+
+  /* LEGEND + FOOTER */
+  .card-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    padding-top: 0.8rem;
+    border-top: 1px solid rgba(200,168,75,0.08);
+  }
+
+  .legend {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+
+  .legend span {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.46rem;
+    letter-spacing: 0.06em;
+    padding: 2px 5px;
+    border-radius: 1px;
+  }
+
+  .reset-btn {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.56rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.4rem 0.9rem;
+    border: 1px solid rgba(200,168,75,0.25);
+    background: transparent;
+    color: rgba(200,168,75,0.55);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .reset-btn:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+    background: rgba(200,168,75,0.05);
+  }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.85);
+    background: linear-gradient(145deg, #1B1435, #261848);
+    border: 2px solid var(--gold);
+    padding: 2.5rem 3rem;
+    text-align: center;
+    z-index: 900;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    max-width: 420px;
+    width: 90%;
+    box-shadow: 0 0 80px rgba(200,168,75,0.25);
+  }
+
+  .toast.show { opacity: 1; transform: translate(-50%,-50%) scale(1); pointer-events: all; }
+
+  .toast-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 3.5rem;
+    color: var(--gold);
+    letter-spacing: 0.12em;
+  }
+
+  .toast-line {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(244,239,229,0.4);
+    margin: 0.3rem 0 1rem;
+  }
+
+  .toast-quote {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1rem;
+    color: rgba(244,239,229,0.8);
+    line-height: 1.65;
+    margin-bottom: 1.5rem;
+    max-width: 320px;
+  }
+
+  .toast-btn {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 0.6rem 1.5rem;
+    background: var(--gold);
+    color: #080810;
+    border: none;
+    cursor: pointer;
+    font-weight: 700;
+    transition: background 0.2s;
+  }
+
+  .toast-btn:hover { background: var(--gold-light); }
+
+  /* PARTICLES */
+  @keyframes burst {
+    0% { transform: translate(0,0) scale(1); opacity: 1; }
+    100% { transform: translate(var(--tx),var(--ty)) scale(0); opacity: 0; }
+  }
+
+  .particle {
+    position: fixed;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    z-index: 800;
+    pointer-events: none;
+    animation: burst 0.5s ease-out forwards;
+  }
+
+  @media (max-width: 480px) {
+    .bingo-grid { gap: 3px; }
+    .cell-icon { font-size: 0.9rem; }
+    .cell-text { font-size: 0.36rem; }
+    .howto-step { min-width: 120px; }
+  }
+</style>
+
+<div class="joy-page">
+<div class="wrap">
+
+  <!-- HEADER -->
+  <div class="header">
+    <p class="eyebrow">Quest Labs ✦ The Questor's Intensive ✦ Founding Cohort 2026</p>
+    <h1 class="main-title">2032 <em>Joy of Being</em></h1>
+    <p class="subtitle">complete a task → a full square reveals → 5 in a row → bingo</p>
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <div class="howto">
+    <div class="howto-step">
+      <div class="step-num">Step 01</div>
+      <div class="step-text">Choose a task from the panel below. Do it in the real world.</div>
+    </div>
+    <div class="howto-step">
+      <div class="step-num">Step 02</div>
+      <div class="step-text">Mark it complete. A random square fully peels away.</div>
+    </div>
+    <div class="howto-step">
+      <div class="step-num">Step 03</div>
+      <div class="step-text">Get 5 revealed squares in a row = BINGO.</div>
+    </div>
+    <div class="howto-step">
+      <div class="step-num">Step 04</div>
+      <div class="step-text">All 24 tasks done = your complete 2032 portrait revealed.</div>
+    </div>
+  </div>
+
+  <!-- TASK PANEL -->
+  <div class="task-panel">
+    <div class="task-header">
+      <div class="task-header-label">Complete a Task → Reveal a Corner</div>
+      <div class="task-progress"><span id="task-done">0</span> / <span id="task-total">0</span> tasks complete</div>
+    </div>
+    <div class="tasks-grid" id="tasks-grid"></div>
+  </div>
+
+  <!-- BINGO CARD -->
+  <div class="card-shell">
+    <div class="card-top">
+      <div class="card-label">Your 2032 Revelation Card</div>
+      <div class="card-counter"><b id="squares-revealed">0</b> / 24 squares fully revealed</div>
+    </div>
+    <div class="bingo-grid" id="bingo-grid"></div>
+    <div class="card-foot">
+      <div class="legend">
+        <span class="tag-fresh">FRESH</span>
+        <span class="tag-steep">STEEP</span>
+        <span class="tag-bm">Black Menagerie</span>
+        <span class="tag-hobb">HoBB</span>
+        <span class="tag-aw">Artist's Way</span>
+      </div>
+      <button class="reset-btn" onclick="resetAll()">↺ Reset</button>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <div class="toast-title">BINGO</div>
+  <div class="toast-line">A line of futures revealed</div>
+  <div class="toast-quote" id="toast-quote"></div>
+  <button class="toast-btn" onclick="dismissToast()">Keep Going →</button>
+</div>
+
+<script is:inline>
+const TASKS = [
+  { id:'f1', label:'Write 3 morning pages', fw:'FRESH', fwClass:'fw-fresh', detail:"Futures you didn't know you were building" },
+  { id:'f2', label:'Map one social trend shaping your work', fw:'FRESH', fwClass:'fw-fresh', detail:"What's shifting around you?" },
+  { id:'f3', label:'Name an economic model you can live inside', fw:'FRESH', fwClass:'fw-fresh', detail:'Not survive — live.' },
+  { id:'f4', label:'Identify a technology you shape (not the reverse)', fw:'FRESH', fwClass:'fw-fresh', detail:'You are the author, not the subject.' },
+  { id:'f5', label:'Find one environmental practice in your daily work', fw:'FRESH', fwClass:'fw-fresh', detail:'What breathes because you work?' },
+  { id:'s1', label:'Name one political system you outlast', fw:'STEEP', fwClass:'fw-steep', detail:'Not fight — outlast.' },
+  { id:'s2', label:'Spot a future signal others call noise', fw:'STEEP', fwClass:'fw-steep', detail:"Write it down. You'll need it." },
+  { id:'s3', label:'Describe your "economy of enough"', fw:'STEEP', fwClass:'fw-steep', detail:'What does enough actually feel like?' },
+  { id:'s4', label:"Write a policy that doesn't exist yet", fw:'STEEP', fwClass:'fw-steep', detail:'One sentence. Real enough to implement.' },
+  { id:'s5', label:'Take your Artist Date (solo, 2 hrs)', fw:'STEEP', fwClass:'fw-steep', detail:"Non-negotiable. It feeds the session." },
+  { id:'b1', label:'Claim your Groundbreaker week', fw:'Black Menagerie', fwClass:'fw-bm', detail:'Build something new this week.' },
+  { id:'b2', label:'Claim your Host week', fw:'Black Menagerie', fwClass:'fw-bm', detail:'Make it safe to think in one room.' },
+  { id:'b3', label:'Claim your Sapien week', fw:'Black Menagerie', fwClass:'fw-bm', detail:'Hold what others call noise.' },
+  { id:'b4', label:'Claim your Curator week', fw:'Black Menagerie', fwClass:'fw-bm', detail:'Name what accumulates.' },
+  { id:'b5', label:'Claim your Creator week', fw:'Black Menagerie', fwClass:'fw-bm', detail:'Make something under pressure.' },
+  { id:'h1', label:'Name one thing you build that has no precedent', fw:'HoBB', fwClass:'fw-hobb', detail:'Groundbreaker energy.' },
+  { id:'h2', label:'Hold the emotional climate of one room', fw:'HoBB', fwClass:'fw-hobb', detail:'Host energy.' },
+  { id:'h3', label:'State the signal everyone else is missing', fw:'HoBB', fwClass:'fw-hobb', detail:'Sapien energy.' },
+  { id:'h4', label:'Name & hold something important this week', fw:'HoBB', fwClass:'fw-hobb', detail:'Curator energy.' },
+  { id:'h5', label:"Run an experiment no one dared yet", fw:'HoBB', fwClass:'fw-hobb', detail:'Creator energy.' },
+  { id:'a1', label:'Complete 7 days of morning pages', fw:"Artist's Way", fwClass:'fw-aw', detail:'The practice is the portal.' },
+  { id:'a2', label:'Write your Artifact Zero', fw:"Artist's Way", fwClass:'fw-aw', detail:'What founding object do you carry?' },
+  { id:'a3', label:'Complete your Week 4 departure reflection', fw:"Artist's Way", fwClass:'fw-aw', detail:'What do you carry? What do you leave?' },
+  { id:'a4', label:'Draft your 2032 Mad Libs — 8 blanks', fw:"Artist's Way", fwClass:'fw-aw', detail:'At the halfway point. Read it aloud.' },
+  { id:'a5', label:'Write your complete 2032 Joy of Being description', fw:"Artist's Way", fwClass:'fw-aw', detail:'All 12 blanks. Read it to someone.' },
+];
+
+const CELLS = [
+  { icon:'🌱', text:"Futures that grow in unexpected soil", tag:'fresh' },
+  { icon:'🏛️', text:"Systems I outlast, not fight", tag:'steep' },
+  { icon:'🌿', text:"I am the Groundbreaker", tag:'bm' },
+  { icon:'🎯', text:"I work at the threshold of possible", tag:'hobb' },
+  { icon:'📓', text:"My pages told me what I didn't know", tag:'aw' },
+  { icon:'🔬', text:"Technology I shape, not the reverse", tag:'fresh' },
+  { icon:'🔭', text:"Futures I see before they arrive", tag:'steep' },
+  { icon:'🏠', text:"I am the Host", tag:'bm' },
+  { icon:'🕯️', text:"I hold the emotional climate", tag:'hobb' },
+  { icon:'🎨', text:"My Artist Date never ended", tag:'aw' },
+  { icon:'🌍', text:"Economic models I can live inside", tag:'fresh' },
+  { icon:'💫', text:"The economy of enough", tag:'steep' },
+  null,
+  { icon:'🗂️', text:"I am the Curator", tag:'bm' },
+  { icon:'🏺', text:"I curate what the world keeps losing", tag:'hobb' },
+  { icon:'🎭', text:"Stories that haven't been told yet", tag:'fresh' },
+  { icon:'🌊', text:"A world that heals while I work", tag:'steep' },
+  { icon:'🔭', text:"I am the Sapien", tag:'bm' },
+  { icon:'📡', text:"I translate signal into sanctuary", tag:'hobb' },
+  { icon:'🔑', text:"Safety was the first thing I built", tag:'aw' },
+  { icon:'🌿', text:"Environments that breathe with us", tag:'fresh' },
+  { icon:'📜', text:"Policy that didn't exist until I named it", tag:'steep' },
+  { icon:'✨', text:"I am the Creator", tag:'bm' },
+  { icon:'🔥', text:"I turn raw experience into something useful", tag:'hobb' },
+  { icon:'🌅', text:"Faith was the last block, not the first", tag:'aw' },
+];
+
+const BINGO_QUOTES = [
+  'A line of your 2032 portrait just came into focus.',
+  'Five futures aligned. Something is emerging.',
+  'The pattern is revealing itself. Keep going.',
+  'Another constellation of possibility — complete.',
+  'You are building the world from inside the game.',
+  'The door opens from the inside.',
+];
+
+let cellCorners = Array.from({length:25}, (_,i) => i===12 ? [true,true,true,true] : [false,false,false,false]);
+let tasksDone = {};
+let bingoLinesFound = new Set();
+let cellQueue = [];
+
+function buildCellQueue() {
+  // One entry per non-free cell — completing one task reveals the whole cell
+  const cells = [];
+  for (let c = 0; c < 25; c++) {
+    if (c === 12) continue;
+    cells.push(c);
+  }
+  for (let i = cells.length-1; i > 0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [cells[i],cells[j]] = [cells[j],cells[i]];
+  }
+  cellQueue = cells;
+}
+
+function renderTasks() {
+  const grid = document.getElementById('tasks-grid');
+  grid.innerHTML = '';
+  TASKS.forEach(t => {
+    const btn = document.createElement('button');
+    btn.className = 'task-btn' + (tasksDone[t.id] ? ' done' : '');
+    btn.innerHTML = `
+      <div class="task-check">${tasksDone[t.id] ? '✓' : ''}</div>
+      <div>
+        <div class="task-label">${t.label}</div>
+        <div class="task-fw ${t.fwClass}">${t.fw}</div>
+      </div>
+    `;
+    if (!tasksDone[t.id]) btn.addEventListener('click', () => completeTask(t.id));
+    grid.appendChild(btn);
+  });
+  const done = Object.keys(tasksDone).length;
+  document.getElementById('task-done').textContent = done;
+  document.getElementById('task-total').textContent = TASKS.length;
+}
+
+function renderGrid() {
+  const grid = document.getElementById('bingo-grid');
+  grid.innerHTML = '';
+  CELLS.forEach((cell, i) => {
+    const div = document.createElement('div');
+    const isCenter = i === 12;
+    div.className = 'cell' + (isCenter ? ' is-free' : '');
+    div.dataset.idx = i;
+
+    if (isCenter) {
+      div.innerHTML = `
+        <div class="cell-inner">
+          <div class="cell-icon">⭐</div>
+          <div class="cell-text">FREE</div>
+          <div class="cell-tag tag-free">Quest Labs</div>
+        </div>
+      `;
+    } else {
+      const c = cell;
+      const tagClass = `tag-${c.tag}`;
+      const tagLabel = {fresh:'FRESH', steep:'STEEP', bm:'Black Menagerie', hobb:'HoBB', aw:"Artist's Way"}[c.tag];
+      div.innerHTML = `
+        <div class="cell-inner">
+          <div class="cell-icon">${c.icon}</div>
+          <div class="cell-text">${c.text}</div>
+          <div class="cell-tag ${tagClass}">${tagLabel}</div>
+        </div>
+        <div class="scratch-overlay">
+          <div class="scratch-corner sc-tl${cellCorners[i][0] ? ' gone' : ''}"></div>
+          <div class="scratch-corner sc-tr${cellCorners[i][1] ? ' gone' : ''}"></div>
+          <div class="scratch-corner sc-bl${cellCorners[i][2] ? ' gone' : ''}"></div>
+          <div class="scratch-corner sc-br${cellCorners[i][3] ? ' gone' : ''}"></div>
+        </div>
+      `;
+    }
+    grid.appendChild(div);
+  });
+
+  updateSquareCount();
+}
+
+function updateSquareCount() {
+  const fullyRevealed = cellCorners.filter((c, i) => i !== 12 && c.every(Boolean)).length;
+  document.getElementById('squares-revealed').textContent = fullyRevealed;
+}
+
+function completeTask(id) {
+  if (tasksDone[id]) return;
+  tasksDone[id] = true;
+
+  if (cellQueue.length > 0) {
+    const cellIdx = cellQueue.shift();
+    revealCell(cellIdx);
+  }
+
+  renderTasks();
+  checkBingo();
+}
+
+function revealCell(cellIdx) {
+  cellCorners[cellIdx] = [true, true, true, true];
+
+  const grid = document.getElementById('bingo-grid');
+  const cellEl = grid.children[cellIdx];
+  if (!cellEl) return;
+
+  const cornerClasses = ['sc-tl','sc-tr','sc-bl','sc-br'];
+  const rect = cellEl.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+
+  cornerClasses.forEach(cls => {
+    const el = cellEl.querySelector(`.${cls}`);
+    if (el) el.classList.add('gone');
+  });
+
+  burst(cx, cy);
+  updateSquareCount();
+}
+
+function burst(x, y) {
+  const colors = ['#C8A84B','#EDD97A','#BEA070','#8C7556','#A78BFA'];
+  for (let i = 0; i < 6; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const angle = (i/6)*Math.PI*2 + Math.random()*0.5;
+    const dist = 15 + Math.random()*25;
+    p.style.cssText = `
+      left:${x}px; top:${y}px;
+      --tx:${Math.cos(angle)*dist}px;
+      --ty:${Math.sin(angle)*dist}px;
+      background:${colors[i%colors.length]};
+    `;
+    document.body.appendChild(p);
+    p.addEventListener('animationend', () => p.remove());
+  }
+}
+
+const BINGO_LINES = [
+  [0,1,2,3,4],[5,6,7,8,9],[10,11,12,13,14],[15,16,17,18,19],[20,21,22,23,24],
+  [0,5,10,15,20],[1,6,11,16,21],[2,7,12,17,22],[3,8,13,18,23],[4,9,14,19,24],
+  [0,6,12,18,24],[4,8,12,16,20]
+];
+
+function checkBingo() {
+  for (const line of BINGO_LINES) {
+    const key = line.join('-');
+    if (bingoLinesFound.has(key)) continue;
+    if (line.every(i => cellCorners[i].every(Boolean))) {
+      bingoLinesFound.add(key);
+      lightLine(line);
+      showBingo(line);
+      break;
+    }
+  }
+}
+
+function lightLine(line) {
+  const grid = document.getElementById('bingo-grid');
+  line.forEach(i => grid.children[i].classList.add('bingo-lit'));
+}
+
+function showBingo(line) {
+  const q = BINGO_QUOTES[Math.floor(Math.random()*BINGO_QUOTES.length)];
+  document.getElementById('toast-quote').textContent = `"${q}"`;
+  document.getElementById('toast').classList.add('show');
+}
+
+function dismissToast() {
+  document.getElementById('toast').classList.remove('show');
+}
+
+function resetAll() {
+  cellCorners = Array.from({length:25}, (_,i) => i===12 ? [true,true,true,true] : [false,false,false,false]);
+  tasksDone = {};
+  bingoLinesFound = new Set();
+  buildCellQueue();
+  renderGrid();
+  renderTasks();
+  document.querySelectorAll('.bingo-lit').forEach(el => el.classList.remove('bingo-lit'));
+}
+
+buildCellQueue();
+renderGrid();
+renderTasks();
+</script>
+
+</Layout>

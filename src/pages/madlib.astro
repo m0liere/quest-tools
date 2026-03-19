@@ -1,0 +1,388 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Joy of Being — Madlib" currentPage="/madlib">
+
+<style>
+  .madlib-page {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+  }
+
+  /* Radial bg accent */
+  .madlib-page::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 70% 60% at 50% 30%, rgba(76,29,149,0.18), transparent 70%),
+      radial-gradient(ellipse 40% 30% at 10% 80%, rgba(13,148,136,0.06), transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* HERO */
+  .hero {
+    padding: 5rem 2rem 4rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: #A78BFA;
+    opacity: 0.7;
+    margin-bottom: 1.2rem;
+    position: relative;
+  }
+
+  .hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.5rem, 7vw, 5rem);
+    font-weight: 300;
+    line-height: 1.05;
+    color: #EDE9FE;
+    position: relative;
+    margin-bottom: 0.5rem;
+  }
+
+  .hero-title em { color: #A78BFA; font-style: italic; }
+
+  .hero-sub {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.2rem;
+    color: rgba(253,252,255,0.45);
+    position: relative;
+    margin-top: 0.8rem;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.7;
+  }
+
+  /* TEMPLATE SECTION */
+  .template-section {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 2rem 6rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .template-header { margin-bottom: 3rem; }
+
+  .section-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.52rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(167,139,250,0.4);
+    margin-bottom: 1rem;
+  }
+
+  .template-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-weight: 300;
+    color: #EDE9FE;
+    margin-bottom: 0.5rem;
+  }
+
+  .template-title em { color: #A78BFA; font-style: italic; }
+
+  .template-body-text {
+    font-family: 'Mulish', sans-serif;
+    font-size: 0.9rem;
+    line-height: 1.8;
+    color: rgba(253,252,255,0.4);
+    max-width: 580px;
+  }
+
+  /* MAD LIBS FORM */
+  .mad-libs-form {
+    background: rgba(167,139,250,0.03);
+    border: 1px solid rgba(167,139,250,0.1);
+    padding: 3rem;
+  }
+
+  .mad-libs-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.5rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(167,139,250,0.4);
+    margin-bottom: 2rem;
+  }
+
+  .ml-line {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin-bottom: 1.6rem;
+    flex-wrap: wrap;
+  }
+
+  .ml-prefix {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    color: rgba(253,252,255,0.5);
+    white-space: nowrap;
+  }
+
+  .ml-blank {
+    flex: 1;
+    min-width: 160px;
+    border: none;
+    border-bottom: 1px solid rgba(167,139,250,0.35);
+    background: transparent;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    font-style: italic;
+    color: #A78BFA;
+    padding: 2px 4px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .ml-blank::placeholder {
+    color: rgba(167,139,250,0.22);
+    font-style: italic;
+  }
+
+  .ml-blank:focus { border-color: #A78BFA; }
+
+  .ml-suffix {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    color: rgba(253,252,255,0.5);
+    white-space: nowrap;
+  }
+
+  .ml-week {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.46rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(167,139,250,0.3);
+    margin-left: auto;
+    white-space: nowrap;
+    align-self: center;
+    padding-left: 1rem;
+  }
+
+  .ml-milestone { color: rgba(167,139,250,0.5); }
+
+  .ml-separator {
+    height: 1px;
+    background: rgba(167,139,250,0.08);
+    margin: 2rem 0;
+  }
+
+  .generate-btn {
+    margin-top: 2.5rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 0.85rem 2rem;
+    background: rgba(124,58,237,0.4);
+    color: #EDE9FE;
+    border: 1px solid rgba(124,58,237,0.6);
+    cursor: pointer;
+    font-weight: 700;
+    transition: all 0.2s;
+    width: 100%;
+    border-radius: 2px;
+  }
+
+  .generate-btn:hover { background: rgba(124,58,237,0.6); border-color: #7C3AED; }
+
+  /* Generated output */
+  #generated-output {
+    margin-top: 2rem;
+    display: none;
+    background: rgba(167,139,250,0.04);
+    border: 1px solid rgba(167,139,250,0.2);
+    border-left: 3px solid #A78BFA;
+    padding: 2rem 2.5rem;
+  }
+
+  #generated-output.show { display: block; }
+
+  #generated-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem;
+    line-height: 2;
+    color: rgba(253,252,255,0.82);
+  }
+
+  #generated-text strong { color: #A78BFA; font-style: italic; }
+
+  /* Week indicator */
+  .ml-week-note {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.45rem;
+    color: rgba(167,139,250,0.35);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 600px) {
+    .mad-libs-form { padding: 1.5rem; }
+    .ml-prefix, .ml-blank, .ml-suffix { font-size: 1rem; }
+  }
+</style>
+
+<div class="madlib-page">
+
+  <!-- HERO -->
+  <div class="hero">
+    <p class="hero-label">Quest Labs ✦ The Questor's Intensive ✦ 2026–2032</p>
+    <h1 class="hero-title">Your 2032 <em>Joy of Being</em></h1>
+    <p class="hero-sub">One blank unlocks each week. By Week 12 you have a complete portrait.<br>Fill in what you know now. Return to update it.</p>
+  </div>
+
+  <!-- TEMPLATE SECTION -->
+  <div class="template-section" id="template">
+    <div class="template-header">
+      <div class="section-num">The Template ✦ Fill Yours In</div>
+      <h2 class="template-title">Your 2032 <em>Joy of Being</em></h2>
+      <p class="template-body-text">
+        Not what you do. Who you become doing it.<br>
+        Write slowly. The blanks are the practice.
+      </p>
+    </div>
+
+    <div class="mad-libs-form">
+      <div class="mad-libs-label">The Complete 2032 Joy of Being Mad Libs</div>
+
+      <div class="ml-line">
+        <span class="ml-prefix">In 2032, I am a</span>
+        <input class="ml-blank" placeholder="what you do, in the fullest sense" id="ml1">
+        <span class="ml-week">Wk 1</span>
+      </div>
+      <div class="ml-line">
+        <span class="ml-prefix">who</span>
+        <input class="ml-blank" placeholder="the transformation you create" id="ml-verb">
+      </div>
+      <div class="ml-line">
+        <span class="ml-prefix">with and for</span>
+        <input class="ml-blank" placeholder="who you do it with / for" id="ml3">
+      </div>
+      <div class="ml-line">
+        <span class="ml-prefix">inside a world that has learned to</span>
+        <input class="ml-blank" placeholder="the paradigm shift" id="ml4">
+        <span class="ml-week ml-milestone">★ Wk 4</span>
+      </div>
+
+      <div class="ml-separator"></div>
+
+      <div class="ml-line">
+        <span class="ml-prefix">I am known for my</span>
+        <input class="ml-blank" placeholder="your signature gift" id="ml5">
+        <span class="ml-week">Wk 5</span>
+      </div>
+      <div class="ml-line">
+        <span class="ml-prefix">I work at the intersection of</span>
+        <input class="ml-blank" placeholder="field one" id="ml6a">
+        <span class="ml-prefix">and</span>
+        <input class="ml-blank" placeholder="field two (the unexpected pairing)" id="ml6b">
+        <span class="ml-week">Wk 6</span>
+      </div>
+      <div class="ml-line">
+        <span class="ml-prefix">The problem I exist to dissolve is</span>
+        <input class="ml-blank" placeholder="the thing you couldn't not address" id="ml7">
+        <span class="ml-week">Wk 7</span>
+      </div>
+
+      <div class="ml-separator"></div>
+
+      <div class="ml-line">
+        <span class="ml-prefix">My collaborators are</span>
+        <input class="ml-blank" placeholder="who you build with" id="ml8a">
+        <span class="ml-prefix">because</span>
+        <input class="ml-blank" placeholder="the values that make it work" id="ml8b">
+        <span class="ml-week ml-milestone">★ Wk 8</span>
+      </div>
+      <div class="ml-line">
+        <span class="ml-prefix">I measure my work by</span>
+        <input class="ml-blank" placeholder="a non-extractive metric" id="ml9">
+        <span class="ml-week">Wk 9</span>
+      </div>
+
+      <div class="ml-separator"></div>
+
+      <div class="ml-line">
+        <span class="ml-prefix">The world I'm building makes</span>
+        <input class="ml-blank" placeholder="what you make obsolete" id="ml10">
+        <span class="ml-suffix">obsolete.</span>
+        <span class="ml-week">Wk 10</span>
+      </div>
+      <div class="ml-line">
+        <span class="ml-prefix">I became this by</span>
+        <input class="ml-blank" placeholder="your origin story in one honest sentence" id="ml11">
+        <span class="ml-week">Wk 11</span>
+      </div>
+      <div class="ml-line">
+        <span class="ml-prefix">What I couldn't have known in 2025 was</span>
+        <input class="ml-blank" placeholder="the surprise the journey delivers" id="ml12a">
+        <span class="ml-week ml-milestone">★ Wk 12</span>
+      </div>
+      <div class="ml-line">
+        <span class="ml-prefix">The title on my door says:</span>
+        <input class="ml-blank" placeholder="your real title" id="ml12b">
+      </div>
+      <div class="ml-line">
+        <span class="ml-prefix">The door is always</span>
+        <input class="ml-blank" placeholder="what's true about how you show up" id="ml12c">
+      </div>
+
+      <button class="generate-btn" onclick="generateDescription()">→ Assemble My 2032 Joy of Being Description</button>
+
+      <div id="generated-output">
+        <div class="mad-libs-label" style="margin-bottom:1.2rem;">Your 2032 Joy of Being</div>
+        <div id="generated-text"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script is:inline>
+function generateDescription() {
+  const vals = {
+    role: v('ml1'), verb: v('ml-verb'), with: v('ml3'), world: v('ml4'),
+    known: v('ml5'), int1: v('ml6a'), int2: v('ml6b'), problem: v('ml7'),
+    collab: v('ml8a'), values: v('ml8b'), measure: v('ml9'),
+    obsolete: v('ml10'), became: v('ml11'), surprise: v('ml12a'),
+    title: v('ml12b'), door: v('ml12c')
+  };
+
+  const out = document.getElementById('generated-output');
+  const text = document.getElementById('generated-text');
+
+  const fill = (k, fallback) => vals[k] ? `<strong>${vals[k]}</strong>` : `<em style="opacity:0.35">${fallback}</em>`;
+
+  text.innerHTML = `
+    In 2032, I am a ${fill('role','what you do, in the fullest sense')} who ${fill('verb','the transformation you create')} with and for ${fill('with','who you do it with')} inside a world that has learned to ${fill('world','the paradigm shift')}.<br><br>
+    I am known for my ${fill('known','your signature gift')}. I work at the intersection of ${fill('int1','field one')} and ${fill('int2','field two')}. The problem I exist to dissolve is ${fill('problem','the thing you couldn\'t not address')}.<br><br>
+    My collaborators are ${fill('collab','who you build with')} because ${fill('values','the values that make it work')}. I measure my work by ${fill('measure','a non-extractive metric')}.<br><br>
+    The world I'm building makes ${fill('obsolete','what you make obsolete')} obsolete. I became this by ${fill('became','your origin story in one honest sentence')}. What I couldn't have known in 2025 was ${fill('surprise','the surprise the journey delivers')}.<br><br>
+    The title on my door says: <em>${fill('title','your real title')}</em> The door is always ${fill('door','what\'s true about how you show up')}.
+  `;
+
+  out.classList.add('show');
+  setTimeout(() => out.scrollIntoView({ behavior:'smooth', block:'start' }), 100);
+}
+
+function v(id) { return document.getElementById(id)?.value?.trim() || ''; }
+</script>
+
+</Layout>

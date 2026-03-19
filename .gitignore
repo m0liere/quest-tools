@@ -1,0 +1,22 @@
+node_modules/
+dist/
+.astro/
+
+# Tauri build output
+src-tauri/target/
+src-tauri/gen/
+
+# Keep personal data out of git
+db.json
+public/portraits/
+
+# Raw/static HTML prototypes — not part of the Astro app
+raw-htmls/
+static_htmls/
+
+# Editor / tool config
+.claude/
+
+# OS files
+.DS_Store
+Thumbs.db

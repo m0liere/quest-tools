@@ -1,0 +1,2938 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Quest Labs — Quest Cards" currentPage="/">
+
+<style is:global>
+  :root {
+    --ql:     #7C3AED;
+    --school: #0D9488;
+    --work:   #BE123C;
+    --home:   #D97706;
+    --joy:    #A78BFA;
+
+    --s1: #7C3AED;
+    --s2: #0D9488;
+    --s3: #BE123C;
+    --s4: #D97706;
+    --s5: #A78BFA;
+  }
+
+  .page-wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Internal tabs */
+  .tab-nav {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding: 0.75rem 1rem;
+    background: rgba(30,27,75,0.6);
+    border: 1px solid rgba(124,58,237,0.2);
+    border-radius: 4px;
+  }
+
+  .nav-util-group {
+    margin-left: auto;
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+  }
+
+  .nav-util-btn {
+    position: relative;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.35rem 0.8rem;
+    border: 1px solid rgba(167,139,250,0.25);
+    background: transparent;
+    color: rgba(167,139,250,0.6);
+    cursor: pointer;
+    transition: all 0.2s;
+    border-radius: 2px;
+  }
+  .nav-util-btn:hover {
+    border-color: rgba(167,139,250,0.6);
+    color: #EDE9FE;
+    background: rgba(124,58,237,0.1);
+  }
+  .nav-util-btn.export-btn { border-color: rgba(13,148,136,0.3); color: rgba(204,251,241,0.6); }
+  .nav-util-btn.export-btn:hover { border-color: #0D9488; color: #CCFBF1; background: rgba(13,148,136,0.12); }
+  .nav-util-btn.import-btn { border-color: rgba(217,119,6,0.3); color: rgba(253,230,138,0.6); }
+  .nav-util-btn.import-btn:hover { border-color: #D97706; color: #FEF3C7; background: rgba(217,119,6,0.12); }
+
+  /* Tooltips */
+  [data-tooltip] { position: relative; }
+  [data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 220px;
+    background: rgba(13,11,30,0.97);
+    border: 1px solid rgba(124,58,237,0.3);
+    color: rgba(237,233,254,0.85);
+    font-family: 'Mulish', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: none;
+    line-height: 1.5;
+    padding: 0.6rem 0.75rem;
+    border-radius: 4px;
+    white-space: pre-wrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+    z-index: 100;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  }
+  [data-tooltip]:hover::after { opacity: 1; }
+
+  .nav-tab {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 0.4rem 1rem;
+    border: 1px solid rgba(167,139,250,0.3);
+    background: transparent;
+    color: #A78BFA;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-radius: 2px;
+  }
+
+  .nav-tab:hover {
+    border-color: #7C3AED;
+    background: rgba(124,58,237,0.12);
+    color: #EDE9FE;
+  }
+
+  .nav-tab.active {
+    background: rgba(124,58,237,0.25);
+    border-color: #7C3AED;
+    color: #EDE9FE;
+  }
+
+  .nav-xp {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.58rem;
+    color: #D97706;
+    margin-left: auto;
+    align-self: center;
+  }
+
+  /* Sections */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* ── QUEST CARD ── */
+  .qc-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(124,58,237,0.2);
+  }
+
+  .qc-name-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .qc-name {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.4rem, 4vw, 2.2rem);
+    font-style: italic;
+    color: #EDE9FE;
+  }
+
+  .qc-date {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.58rem;
+    color: rgba(167,139,250,0.5);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* XP bar */
+  .xp-bar-wrap {
+    background: rgba(30,27,75,0.6);
+    border: 1px solid rgba(124,58,237,0.25);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .xp-bar-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(167,139,250,0.55);
+    margin-bottom: 0.5rem;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .xp-track {
+    height: 10px;
+    background: rgba(124,58,237,0.15);
+    border-radius: 999px;
+    overflow: hidden;
+    border: 1px solid rgba(124,58,237,0.3);
+  }
+
+  .xp-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--violet), var(--lavender));
+    border-radius: 999px;
+    transition: width 0.5s ease;
+    width: 0%;
+  }
+
+  .xp-pills {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.75rem;
+  }
+
+  .xp-pill {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    border: 1px solid;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: transparent;
+  }
+
+  .xp-pill:hover { transform: scale(1.05); opacity: 0.85; }
+
+  /* Quest Card Board */
+  .qc-board {
+    background: rgba(13,11,30,0.8);
+    border: 1px solid rgba(124,58,237,0.25);
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+  }
+
+  .qc-columns {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+  }
+
+  .col-header {
+    padding: 0.75rem 0.5rem;
+    text-align: center;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.58rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: white;
+    line-height: 1.3;
+    border-right: 1px solid rgba(255,255,255,0.15);
+  }
+
+  .col-header:last-child { border-right: none; }
+  .col-header.ql     { background: rgba(124,58,237,0.7); }
+  .col-header.school { background: rgba(13,148,136,0.7); }
+  .col-header.work   { background: rgba(190,18,60,0.7); }
+  .col-header.home   { background: rgba(217,119,6,0.7); }
+  .col-header.joy    { background: rgba(167,139,250,0.5); }
+
+  .qc-grid {
+    display: flex;
+    align-items: flex-start;
+    border-top: 1px solid rgba(124,58,237,0.2);
+  }
+
+  .qc-col-lane {
+    flex: 1;
+    min-height: 120px;
+    border-right: 1px solid rgba(124,58,237,0.15);
+    display: flex;
+    flex-direction: column;
+    transition: background 0.15s;
+  }
+
+  .qc-col-lane:last-child { border-right: none; }
+
+  .qc-col-lane.drag-over {
+    background: rgba(124,58,237,0.1);
+    outline: 1px dashed rgba(124,58,237,0.45);
+    outline-offset: -2px;
+  }
+
+  .qc-cell {
+    border-bottom: 1px solid rgba(124,58,237,0.15);
+    padding: 0.6rem 0.5rem;
+    min-height: 72px;
+    position: relative;
+    cursor: grab;
+    transition: background 0.15s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 0.3rem;
+  }
+
+  .qc-cell:hover { background: rgba(124,58,237,0.08); }
+  .qc-cell.dragging { opacity: 0.3; cursor: grabbing; }
+
+  .qc-cell.done { background: rgba(124,58,237,0.12); }
+  .qc-cell.ql-col.done    { background: rgba(124,58,237,0.18); }
+  .qc-cell.school-col.done { background: rgba(13,148,136,0.15); }
+  .qc-cell.work-col.done  { background: rgba(190,18,60,0.15); }
+  .qc-cell.home-col.done  { background: rgba(217,119,6,0.15); }
+  .qc-cell.joy-col.done   { background: rgba(167,139,250,0.18); }
+
+  .cell-text {
+    font-family: 'Mulish', sans-serif;
+    font-size: 0.68rem;
+    font-weight: 500;
+    line-height: 1.3;
+    color: rgba(253,252,255,0.85);
+    pointer-events: none;
+  }
+
+  .cell-star {
+    font-size: 0.75rem;
+    opacity: 0;
+    transition: opacity 0.2s;
+    position: absolute;
+    top: 4px; right: 4px;
+    color: #D97706;
+    pointer-events: none;
+  }
+  .qc-cell.done .cell-star { opacity: 1; }
+
+
+  /* Overflow */
+  .overflow-tasks {
+    background: rgba(30,27,75,0.5);
+    border: 1px solid rgba(124,58,237,0.2);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .overflow-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(167,139,250,0.5);
+    margin-bottom: 0.75rem;
+  }
+
+  .overflow-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 5px;
+    min-height: 2.5rem;
+    padding: 0.25rem 0;
+    transition: background 0.15s;
+  }
+
+  .overflow-grid.drag-over {
+    background: rgba(124,58,237,0.07);
+    outline: 1px dashed rgba(124,58,237,0.4);
+    outline-offset: 2px;
+  }
+
+  /* SP badge */
+  .sp-badge {
+    position: absolute;
+    bottom: 4px; right: 4px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.42rem;
+    color: rgba(167,139,250,0.5);
+    background: rgba(124,58,237,0.12);
+    padding: 1px 4px;
+    border-radius: 2px;
+    line-height: 1.4;
+    pointer-events: none;
+  }
+
+  /* Edit button on cards */
+  .cell-edit-btn {
+    position: absolute;
+    top: 3px; right: 3px;
+    width: 16px; height: 16px;
+    background: rgba(124,58,237,0.2);
+    border: none;
+    border-radius: 2px;
+    color: rgba(167,139,250,0.6);
+    font-size: 0.5rem;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: all 0.15s;
+    z-index: 2;
+  }
+  .qc-cell:hover .cell-edit-btn { display: flex; }
+  .cell-edit-btn:hover { background: rgba(124,58,237,0.5); color: #EDE9FE; }
+
+  /* Add card button (bottom of each column) */
+  .col-add-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    width: 100%;
+    padding: 0.5rem 0.6rem;
+    background: transparent;
+    border: none;
+    color: rgba(167,139,250,0.35);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.52rem;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: left;
+    margin-top: auto;
+  }
+  .col-add-btn:hover {
+    background: rgba(124,58,237,0.08);
+    color: #A78BFA;
+  }
+
+  /* Add sidequest button */
+  .add-overflow {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.52rem;
+    border: 1px dashed rgba(124,58,237,0.3);
+    background: transparent;
+    cursor: pointer;
+    color: rgba(124,58,237,0.5);
+    transition: all 0.15s;
+    min-height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .add-overflow:hover { border-color: #7C3AED; color: #A78BFA; }
+
+  /* Level display */
+  .qc-level {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.52rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(167,139,250,0.45);
+    margin-top: 0.2rem;
+  }
+
+  /* ── CARD EDITOR ── */
+  .ce-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    backdrop-filter: blur(4px);
+  }
+
+  .ce-modal {
+    background: #110E25;
+    border: 1px solid rgba(124,58,237,0.4);
+    width: 100%;
+    max-width: 440px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .ce-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1.25rem;
+    border-bottom: 1px solid rgba(124,58,237,0.15);
+  }
+
+  .ce-header-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.56rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(167,139,250,0.5);
+  }
+
+  .ce-close {
+    background: none;
+    border: none;
+    color: rgba(167,139,250,0.4);
+    cursor: pointer;
+    font-size: 0.85rem;
+    padding: 2px 4px;
+    transition: color 0.15s;
+  }
+  .ce-close:hover { color: #EDE9FE; }
+
+  .ce-body {
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+
+  .ce-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.5rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(167,139,250,0.4);
+    display: block;
+    margin-bottom: 0.3rem;
+  }
+
+  .ce-input {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(124,58,237,0.25);
+    color: #EDE9FE;
+    font-family: 'Mulish', sans-serif;
+    font-size: 0.9rem;
+    padding: 0.5rem 0.75rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .ce-input:focus { border-color: rgba(124,58,237,0.7); }
+
+  .ce-sp-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .ce-sp-btn {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 700;
+    width: 34px; height: 34px;
+    border: 1px solid rgba(124,58,237,0.3);
+    background: transparent;
+    color: rgba(167,139,250,0.6);
+    cursor: pointer;
+    border-radius: 3px;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .ce-sp-btn:hover { border-color: #7C3AED; color: #EDE9FE; background: rgba(124,58,237,0.15); }
+  .ce-sp-btn.active { background: rgba(124,58,237,0.4); border-color: #7C3AED; color: #EDE9FE; }
+
+  .ce-sp-key {
+    display: grid;
+    grid-template-columns: 20px 1fr auto;
+    gap: 2px 8px;
+    padding: 0.6rem 0.75rem;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(124,58,237,0.1);
+    border-radius: 2px;
+  }
+  .ce-sp-key-row {
+    display: contents;
+  }
+  .ce-sp-key-row > span {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.5rem;
+    color: rgba(167,139,250,0.45);
+    padding: 1px 0;
+    align-self: center;
+  }
+  .ce-sp-key-row > span:first-child {
+    font-weight: 700;
+    color: rgba(167,139,250,0.7);
+  }
+  .ce-xp { color: rgba(217,119,6,0.6) !important; }
+
+  .ce-textarea {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(124,58,237,0.25);
+    color: #EDE9FE;
+    font-family: 'Mulish', sans-serif;
+    font-size: 0.82rem;
+    line-height: 1.6;
+    padding: 0.5rem 0.75rem;
+    outline: none;
+    resize: vertical;
+    min-height: 80px;
+    transition: border-color 0.2s;
+  }
+  .ce-textarea:focus { border-color: rgba(124,58,237,0.7); }
+
+  .ce-footer {
+    display: flex;
+    gap: 0.6rem;
+    padding: 0.85rem 1.25rem;
+    border-top: 1px solid rgba(124,58,237,0.15);
+  }
+
+  .ce-save {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+    padding: 0.5rem 1.25rem;
+    background: rgba(124,58,237,0.5);
+    border: 1px solid rgba(124,58,237,0.7);
+    color: #EDE9FE;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .ce-save:hover { background: rgba(124,58,237,0.7); }
+
+  .ce-cancel {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+    padding: 0.5rem 1rem;
+    background: transparent;
+    border: 1px solid rgba(124,58,237,0.2);
+    color: rgba(167,139,250,0.5);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .ce-cancel:hover { border-color: rgba(124,58,237,0.5); color: #A78BFA; }
+
+  /* ── WHEEL OF LIFE ── */
+  .wol-wrap {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    align-items: start;
+  }
+
+  @media (max-width: 700px) {
+    .wol-wrap { grid-template-columns: 1fr; }
+  }
+
+  .wol-canvas-wrap {
+    background: rgba(30,27,75,0.6);
+    border: 1px solid rgba(124,58,237,0.25);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .wol-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    font-style: italic;
+    color: #EDE9FE;
+    margin-bottom: 0.25rem;
+  }
+
+  .wol-subtitle {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: rgba(167,139,250,0.5);
+    letter-spacing: 0.1em;
+    margin-bottom: 1.25rem;
+    text-transform: uppercase;
+  }
+
+  #wol-canvas {
+    max-width: 320px;
+    width: 100%;
+  }
+
+  .wol-sliders {
+    background: rgba(30,27,75,0.6);
+    border: 1px solid rgba(124,58,237,0.25);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .wol-slider-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .wol-area-label {
+    font-family: 'Mulish', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    min-width: 100px;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: #EDE9FE;
+  }
+
+  .wol-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .wol-slider {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(124,58,237,0.25);
+    outline: none;
+    cursor: pointer;
+  }
+
+  .wol-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: #7C3AED;
+    border: 2px solid #EDE9FE;
+    cursor: pointer;
+  }
+
+  .wol-val {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.9rem;
+    font-weight: 700;
+    min-width: 1.5rem;
+    text-align: center;
+    color: #A78BFA;
+  }
+
+  .wol-notice {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 0.85rem;
+    color: rgba(167,139,250,0.6);
+    border-top: 1px solid rgba(124,58,237,0.15);
+    padding-top: 0.75rem;
+    margin-top: 0.25rem;
+    min-height: 2rem;
+  }
+
+  .wol-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(124,58,237,0.3);
+    color: #EDE9FE;
+    border: 1px solid rgba(124,58,237,0.5);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.6rem 1.25rem;
+    cursor: pointer;
+    margin-top: 1rem;
+    transition: all 0.2s;
+  }
+
+  .wol-cta:hover { background: rgba(124,58,237,0.5); border-color: #7C3AED; }
+
+  .wol-history {
+    margin-top: 2rem;
+    background: rgba(30,27,75,0.5);
+    border: 1px solid rgba(124,58,237,0.2);
+    padding: 1.25rem;
+    grid-column: 1 / -1;
+  }
+
+  .history-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(167,139,250,0.5);
+    margin-bottom: 1rem;
+  }
+
+  .history-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.72rem;
+  }
+
+  .history-table th {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.52rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(167,139,250,0.5);
+    padding: 0.4rem 0.75rem;
+    border-bottom: 1px solid rgba(124,58,237,0.2);
+    text-align: left;
+  }
+
+  .history-table td {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid rgba(124,58,237,0.1);
+    color: rgba(253,252,255,0.7);
+  }
+
+  .history-table tr:last-child td { border-bottom: none; }
+
+  .history-delete-btn {
+    background: none;
+    border: none;
+    color: rgba(167,139,250,0.25);
+    cursor: pointer;
+    font-size: 0.8rem;
+    padding: 2px 4px;
+    transition: color 0.15s;
+    line-height: 1;
+  }
+  .history-delete-btn:hover { color: #BE123C; }
+
+  .score-dot {
+    display: inline-block;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    color: white;
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-align: center;
+    line-height: 20px;
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+
+
+  @keyframes popIn {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  /* General buttons */
+  .btn-row {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.5rem 1.1rem;
+    border: 1px solid rgba(124,58,237,0.4);
+    cursor: pointer;
+    transition: all 0.15s;
+    background: transparent;
+    color: #A78BFA;
+    border-radius: 2px;
+  }
+
+  .btn:hover { border-color: #7C3AED; background: rgba(124,58,237,0.12); color: #EDE9FE; }
+  .btn-violet { background: rgba(124,58,237,0.3); border-color: #7C3AED; color: #EDE9FE; }
+  .btn-violet:hover { background: rgba(124,58,237,0.5); }
+  .btn-teal { background: rgba(13,148,136,0.2); border-color: #0D9488; color: #CCFBF1; }
+  .btn-teal:hover { background: rgba(13,148,136,0.4); }
+
+  /* Archive */
+  .archive-wrap {
+    background: rgba(13,148,136,0.05);
+    border: 1px solid rgba(13,148,136,0.2);
+    border-radius: 2px;
+    margin-top: 1.5rem;
+  }
+
+  .archive-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1.25rem;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s;
+  }
+  .archive-header:hover { background: rgba(13,148,136,0.08); }
+
+  .archive-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(13,148,136,0.8);
+  }
+
+  .archive-count {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.58rem;
+    background: rgba(13,148,136,0.25);
+    color: #CCFBF1;
+    padding: 1px 7px;
+    border-radius: 999px;
+  }
+
+  .archive-chevron {
+    font-size: 0.7rem;
+    color: rgba(13,148,136,0.6);
+    margin-left: auto;
+    transition: transform 0.2s;
+  }
+  .archive-chevron.open { transform: rotate(90deg); }
+
+  .archive-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 0.5rem 1rem 1rem;
+  }
+
+  .archive-card {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.45rem 0.75rem;
+    background: rgba(13,148,136,0.08);
+    border: 1px solid rgba(13,148,136,0.15);
+    border-radius: 2px;
+    font-family: 'Mulish', sans-serif;
+    font-size: 0.68rem;
+    color: rgba(204,251,241,0.7);
+  }
+
+  .archive-col-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .archive-card-text { flex: 1; text-decoration: line-through; opacity: 0.65; }
+
+  .archive-card-date {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.5rem;
+    color: rgba(13,148,136,0.5);
+    white-space: nowrap;
+  }
+
+  .archive-clear-btn {
+    background: none;
+    border: none;
+    color: rgba(190,18,60,0.4);
+    cursor: pointer;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.48rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    margin-left: auto;
+    transition: color 0.15s;
+  }
+  .archive-clear-btn:hover { color: #BE123C; }
+
+  .archive-card-restore {
+    background: none;
+    border: none;
+    color: rgba(13,148,136,0.5);
+    cursor: pointer;
+    font-size: 0.65rem;
+    padding: 2px 4px;
+    transition: color 0.15s;
+  }
+  .archive-card-restore:hover { color: #0D9488; }
+
+  /* Editable name */
+  .qc-name[contenteditable] { cursor: text; }
+  .qc-name[contenteditable]:focus {
+    outline: none;
+    border-bottom: 1px solid rgba(124,58,237,0.5);
+  }
+  .qc-name[contenteditable]:focus ~ .qc-name-hint { opacity: 0; }
+  .qc-name-hint {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.46rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(167,139,250,0.3);
+    margin-left: 0.5rem;
+    align-self: center;
+    transition: opacity 0.2s;
+  }
+
+  /* Section page hero */
+  .section-hero {
+    padding: 2rem 0 1.5rem;
+    border-bottom: 1px solid rgba(124,58,237,0.15);
+    margin-bottom: 2rem;
+  }
+
+  .section-eyebrow {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(217,119,6,0.7);
+    margin-bottom: 0.5rem;
+  }
+
+  .section-title-h {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-weight: 300;
+    color: #EDE9FE;
+  }
+
+  .section-title-h em { color: #A78BFA; font-style: italic; }
+
+  /* ── FRESH CHECK-IN ── */
+  .fresh-wrap { max-width: 680px; margin: 0 auto; padding: 0.5rem 0 3rem; }
+
+  .fresh-tab-bar { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+  .fresh-tab-btn {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 0.4rem 1rem;
+    border: 1px solid rgba(167,139,250,0.3);
+    background: transparent;
+    color: #A78BFA;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-radius: 2px;
+  }
+  .fresh-tab-btn.active {
+    background: rgba(124,58,237,0.25);
+    border-color: #7C3AED;
+    color: #EDE9FE;
+  }
+  .fresh-tab-btn:hover:not(.active) {
+    border-color: #7C3AED;
+    background: rgba(124,58,237,0.12);
+    color: #EDE9FE;
+  }
+
+  .fresh-panel { display: none; }
+  .fresh-panel.active { display: block; }
+
+  .fresh-section-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(167,139,250,0.5);
+    margin-bottom: 0.75rem;
+  }
+  .fresh-intro { margin-bottom: 1.5rem; }
+  .fresh-h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.4rem, 4vw, 1.9rem);
+    font-weight: 400;
+    font-style: italic;
+    line-height: 1.2;
+    color: #EDE9FE;
+    margin-bottom: 0.5rem;
+  }
+  .fresh-h2 em { font-style: normal; color: #A78BFA; }
+  .fresh-p { font-size: 0.8rem; color: rgba(167,139,250,0.6); line-height: 1.6; }
+
+  .fresh-dim-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(167,139,250,0.15);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 8px;
+    position: relative;
+    overflow: hidden;
+  }
+  .fresh-dim-accent { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+  .fresh-dim-top { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .fresh-dim-badge {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .fresh-dim-meta { flex: 1; }
+  .fresh-dim-name { font-size: 0.85rem; font-weight: 600; color: #EDE9FE; }
+  .fresh-dim-desc { font-size: 0.7rem; color: rgba(167,139,250,0.5); }
+  .fresh-dim-val {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.4rem;
+    min-width: 32px;
+    text-align: right;
+  }
+  .fresh-slider-row { display: flex; align-items: center; gap: 8px; }
+  .fresh-tick {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: rgba(167,139,250,0.35);
+    min-width: 14px;
+  }
+  .fresh-tick.right { text-align: right; }
+
+  .fresh-madlib-wrap {
+    background: rgba(124,58,237,0.1);
+    border: 1px solid rgba(124,58,237,0.25);
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    margin: 1.25rem 0 1rem;
+  }
+  .fresh-madlib-eyebrow {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.5rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(167,139,250,0.4);
+    margin-bottom: 0.6rem;
+  }
+  .fresh-madlib-body {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: #EDE9FE;
+    font-style: italic;
+  }
+  .fresh-madlib-body .fhighlight { color: #A78BFA; font-style: normal; font-weight: 600; }
+
+  .fresh-tier-pills { display: flex; gap: 6px; margin-top: 1rem; }
+  .fresh-tier-pill {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.3rem 0.9rem;
+    border-radius: 999px;
+    border: 1px solid rgba(167,139,250,0.3);
+    background: transparent;
+    color: rgba(167,139,250,0.6);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .fresh-tier-pill.active { color: #0D0B1E; border-color: transparent; }
+  .fresh-tier-pill.ft-good.active  { background: #4a8c6e; }
+  .fresh-tier-pill.ft-better.active { background: #4a6fa5; }
+  .fresh-tier-pill.ft-best.active  { background: #7a4e8c; }
+
+  .fresh-submit-area { display: flex; align-items: center; gap: 12px; margin-top: 1rem; }
+  .fresh-btn-primary {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    padding: 0.6rem 1.4rem;
+    background: rgba(124,58,237,0.6);
+    color: #EDE9FE;
+    border: 1px solid rgba(124,58,237,0.5);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .fresh-btn-primary:hover { opacity: 0.8; }
+  .fresh-save-toast {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: #4a8c6e;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .fresh-save-toast.show { opacity: 1; }
+
+  .fresh-no-data {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(167,139,250,0.12);
+    border-radius: 8px;
+    padding: 2rem;
+    text-align: center;
+    font-size: 0.8rem;
+    color: rgba(167,139,250,0.5);
+  }
+  .fresh-no-data strong { display: block; font-size: 0.9rem; color: #EDE9FE; margin-bottom: 6px; }
+
+  .fresh-entry-row { display: flex; gap: 10px; margin-bottom: 1.5rem; flex-wrap: wrap; align-items: center; }
+  .fresh-label { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: rgba(167,139,250,0.5); }
+  .fresh-entry-row select {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    padding: 5px 8px;
+    border: 1px solid rgba(167,139,250,0.2);
+    border-radius: 4px;
+    background: rgba(255,255,255,0.05);
+    color: #EDE9FE;
+    cursor: pointer;
+  }
+
+  .fresh-bump-container {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(167,139,250,0.12);
+    border-radius: 8px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    overflow: hidden;
+  }
+  .fresh-bump-title { font-size: 0.8rem; font-weight: 600; color: #EDE9FE; margin-bottom: 4px; }
+  .fresh-bump-subtitle { font-size: 0.7rem; color: rgba(167,139,250,0.5); margin-bottom: 0.75rem; }
+
+  .fresh-delta-bars { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1rem; }
+  .fresh-delta-item {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(167,139,250,0.12);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .fresh-delta-badge {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .fresh-delta-dim-name { font-size: 0.78rem; font-weight: 600; color: #EDE9FE; min-width: 90px; }
+  .fresh-delta-track {
+    flex: 1; height: 5px;
+    background: rgba(167,139,250,0.1);
+    border-radius: 3px; position: relative;
+  }
+  .fresh-delta-bar-fill { position: absolute; top: 0; height: 100%; border-radius: 3px; }
+  .fresh-delta-nums { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: rgba(167,139,250,0.5); min-width: 60px; text-align: right; }
+  .fresh-delta-arrow { font-size: 0.85rem; min-width: 20px; text-align: center; font-weight: 600; }
+
+  .fresh-narrative-card {
+    background: rgba(124,58,237,0.1);
+    border: 1px solid rgba(124,58,237,0.25);
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .fresh-narrative-eyebrow {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.5rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(167,139,250,0.4);
+    margin-bottom: 0.6rem;
+  }
+  .fresh-narrative-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.9rem;
+    line-height: 1.65;
+    font-style: italic;
+    color: #EDE9FE;
+  }
+
+  .fresh-data-section { margin-top: 1.5rem; }
+  .fresh-table-wrap { overflow-x: auto; }
+  .fresh-table { width: 100%; border-collapse: collapse; font-size: 0.65rem; }
+  .fresh-table th {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.5rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(167,139,250,0.4);
+    text-align: left;
+    padding: 6px 8px;
+    border-bottom: 1px solid rgba(167,139,250,0.12);
+  }
+  .fresh-table td {
+    padding: 7px 8px;
+    border-bottom: 1px solid rgba(167,139,250,0.07);
+    color: rgba(167,139,250,0.6);
+    font-family: 'Space Mono', monospace;
+  }
+  .fresh-table tr:hover td { background: rgba(124,58,237,0.06); }
+
+  .fresh-export-btn {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.05em;
+    padding: 6px 14px;
+    border: 1px solid rgba(167,139,250,0.2);
+    border-radius: 4px;
+    background: transparent;
+    color: rgba(167,139,250,0.5);
+    cursor: pointer;
+    margin-top: 10px;
+    transition: all 0.2s;
+  }
+  .fresh-export-btn:hover { background: rgba(124,58,237,0.15); color: #EDE9FE; }
+
+  /* ── QUESTOR PROFILE ── */
+  .qp-card {
+    display: grid;
+    grid-template-columns: 36px 1fr 1.4fr;
+    grid-template-rows: auto;
+    border: 1px solid rgba(124,58,237,0.3);
+    background: rgba(13,11,30,0.85);
+    min-height: 600px;
+    overflow: hidden;
+  }
+
+  /* Spine */
+  .qp-spine {
+    grid-row: 1;
+    grid-column: 1;
+    background: #7C3AED;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem 0;
+  }
+
+  /* Left panel */
+  .qp-left {
+    grid-column: 2;
+    border-right: 1px solid rgba(124,58,237,0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  /* Portrait */
+  .qp-portrait-wrap {
+    width: 100%;
+    aspect-ratio: 1;
+    background: rgba(30,27,75,0.6);
+    border-bottom: 1px solid rgba(124,58,237,0.15);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.2s;
+  }
+  .qp-portrait-wrap:hover { background: rgba(124,58,237,0.1); }
+  .qp-portrait-wrap:hover .qp-portrait-placeholder { opacity: 0.7; }
+
+  .qp-portrait-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .qp-portrait-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    transition: opacity 0.2s;
+  }
+
+  /* "I Am" block */
+  .qp-iam-wrap {
+    padding: 0.75rem 1rem 0.5rem;
+    border-bottom: 1px solid rgba(124,58,237,0.1);
+  }
+
+  /* Name / Level / XP */
+  .qp-name-level {
+    padding: 0.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    border-bottom: 1px solid rgba(124,58,237,0.1);
+  }
+  .qp-stat-val {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    color: #A78BFA;
+  }
+
+  /* About Me */
+  .qp-about {
+    padding: 0.75rem 1rem 1rem;
+    flex: 1;
+  }
+  .qp-about-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.52rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(124,58,237,0.8);
+    margin-bottom: 0.6rem;
+    border-bottom: 1px solid rgba(124,58,237,0.2);
+    padding-bottom: 0.3rem;
+  }
+  .qp-about-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin-bottom: 0.35rem;
+  }
+  .qp-about-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.48rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(167,139,250,0.5);
+    white-space: nowrap;
+    min-width: 72px;
+  }
+
+  /* Right panel */
+  .qp-right {
+    grid-column: 3;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .qp-q-item {
+    flex: 1;
+    border-bottom: 1px solid rgba(124,58,237,0.15);
+    display: flex;
+    flex-direction: column;
+  }
+  .qp-q-item:last-child { border-bottom: none; }
+
+  .qp-q-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.4rem 0.75rem;
+    background: rgba(30,27,75,0.5);
+    border-bottom: 1px solid rgba(124,58,237,0.1);
+  }
+  .qp-q-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.75rem;
+    font-style: italic;
+    color: #EDE9FE;
+  }
+  .qp-q-num {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: white;
+    flex-shrink: 0;
+  }
+  .qp-q-body {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+  }
+
+  /* Shared field label */
+  .qp-field-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.48rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(167,139,250,0.5);
+    margin-bottom: 0.2rem;
+    display: block;
+  }
+
+  /* Editable inline fields */
+  .qp-inline-field {
+    font-family: 'Mulish', sans-serif;
+    font-size: 0.78rem;
+    color: rgba(253,252,255,0.85);
+    line-height: 1.5;
+    outline: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.15s;
+    min-height: 1.2em;
+    cursor: text;
+  }
+  .qp-inline-field:focus {
+    border-bottom-color: rgba(124,58,237,0.5);
+  }
+  .qp-inline-field:empty::before {
+    content: attr(data-placeholder);
+    color: rgba(167,139,250,0.25);
+    pointer-events: none;
+  }
+
+  @media (max-width: 700px) {
+    .qp-card {
+      grid-template-columns: 28px 1fr;
+      grid-template-rows: auto auto;
+    }
+    .qp-left { grid-column: 2; border-right: none; border-bottom: 1px solid rgba(124,58,237,0.2); }
+    .qp-right { grid-column: 2; }
+    .qp-spine { grid-row: 1 / 3; }
+  }
+</style>
+
+
+<!-- Updates modal -->
+<div class="ce-overlay" id="updates-overlay" style="display:none" onclick="if(event.target===this)closeUpdatesModal()">
+  <div class="ce-modal" style="max-width:480px">
+    <div class="ce-header">
+      <span class="ce-header-label">Check for Updates</span>
+      <button class="ce-close" onclick="closeUpdatesModal()">✕</button>
+    </div>
+    <div class="ce-body" style="gap:1rem">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span style="font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(167,139,250,0.5)">Current version</span>
+        <span id="updates-version" style="font-family:'Space Mono',monospace;font-size:0.75rem;color:#A78BFA">—</span>
+      </div>
+
+      <div style="border-top:1px solid rgba(124,58,237,0.15);padding-top:0.85rem">
+        <p style="font-family:'Space Mono',monospace;font-size:0.52rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(167,139,250,0.5);margin-bottom:0.6rem">Option 1 — Run the update script</p>
+        <p style="font-family:'Mulish',sans-serif;font-size:0.8rem;color:rgba(240,236,248,0.7);line-height:1.6">
+          In your Quest Tools folder, double-click:
+        </p>
+        <div style="margin:0.5rem 0;display:flex;flex-direction:column;gap:0.3rem">
+          <code style="font-family:'Space Mono',monospace;font-size:0.65rem;background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.2);padding:0.3rem 0.6rem;color:#EDE9FE;border-radius:2px">update-mac.command</code>
+          <code style="font-family:'Space Mono',monospace;font-size:0.65rem;background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.2);padding:0.3rem 0.6rem;color:#EDE9FE;border-radius:2px">update-windows.bat</code>
+        </div>
+        <p style="font-family:'Mulish',sans-serif;font-size:0.75rem;color:rgba(167,139,250,0.5);line-height:1.5">
+          The script will handle everything. Your data is always preserved.
+        </p>
+      </div>
+
+      <div style="border-top:1px solid rgba(124,58,237,0.15);padding-top:0.85rem">
+        <p style="font-family:'Space Mono',monospace;font-size:0.52rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(167,139,250,0.5);margin-bottom:0.6rem">Option 2 — First time? Set up GitHub</p>
+        <ol style="font-family:'Mulish',sans-serif;font-size:0.8rem;color:rgba(240,236,248,0.7);line-height:1.8;padding-left:1.25rem;margin:0">
+          <li>Create a free account at <strong style="color:#A78BFA">github.com</strong></li>
+          <li>Install the GitHub CLI — go to <strong style="color:#A78BFA">cli.github.com</strong>, download the installer for your OS, and run it (installs like any normal app)</li>
+          <li>Double-click the update script — it will log you in and download the latest version automatically</li>
+        </ol>
+      </div>
+    </div>
+    <div class="ce-footer">
+      <button class="ce-cancel" style="margin-left:auto" onclick="closeUpdatesModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Reset card popup -->
+<div class="ce-overlay" id="reset-overlay" style="display:none" onclick="if(event.target===this)closeResetModal()">
+  <div class="ce-modal" style="max-width:380px">
+    <div class="ce-header">
+      <span class="ce-header-label">Reset Quest Card</span>
+      <button class="ce-close" onclick="closeResetModal()">✕</button>
+    </div>
+    <div class="ce-body" style="gap:0.6rem">
+      <p style="font-family:'Mulish',sans-serif;font-size:0.82rem;color:rgba(240,236,248,0.7);line-height:1.5;">
+        All cards will be cleared from the board. What would you like to do with your XP?
+      </p>
+    </div>
+    <div class="ce-footer" style="flex-direction:column;gap:0.5rem">
+      <button class="ce-save" style="width:100%;text-align:center" onclick="confirmReset(false)">Keep XP &amp; level</button>
+      <button class="ce-save" style="width:100%;text-align:center;background:rgba(190,18,60,0.3);border-color:rgba(190,18,60,0.6)" onclick="confirmReset(true)">Clear XP &amp; reset level</button>
+      <button class="ce-cancel" style="width:100%;text-align:center" onclick="closeResetModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Card editor popup -->
+<div class="ce-overlay" id="ce-overlay" style="display:none" onclick="ceOverlayClick(event)">
+  <div class="ce-modal">
+    <div class="ce-header">
+      <span class="ce-header-label">Edit Task</span>
+      <button class="ce-close" onclick="closeCardEditor()">✕</button>
+    </div>
+    <div class="ce-body">
+      <div>
+        <label class="ce-label" for="ce-title">Title</label>
+        <input class="ce-input" type="text" id="ce-title" placeholder="Task name">
+      </div>
+      <div>
+        <label class="ce-label">Story Points</label>
+        <div class="ce-sp-row" id="ce-sp-row"></div>
+        <div class="ce-sp-key" style="margin-top:0.5rem">
+          <div class="ce-sp-key-row"><span>1</span><span>Trivial — under an hour</span><span class="ce-xp">10 XP</span></div>
+          <div class="ce-sp-key-row"><span>2</span><span>Small — 1–2 hrs</span><span class="ce-xp">20 XP</span></div>
+          <div class="ce-sp-key-row"><span>3</span><span>Medium — 2–4 hrs</span><span class="ce-xp">30 XP</span></div>
+          <div class="ce-sp-key-row"><span>5</span><span>Large — ~1 day</span><span class="ce-xp">50 XP</span></div>
+          <div class="ce-sp-key-row"><span>8</span><span>Hard — 2–3 days</span><span class="ce-xp">80 XP</span></div>
+          <div class="ce-sp-key-row"><span>13</span><span>Epic — ~1 week</span><span class="ce-xp">130 XP</span></div>
+          <div class="ce-sp-key-row"><span>21</span><span>Massive — 2+ weeks</span><span class="ce-xp">210 XP</span></div>
+        </div>
+      </div>
+      <div>
+        <label class="ce-label" for="ce-desc">Description</label>
+        <textarea class="ce-textarea" id="ce-desc" placeholder="Notes, context, or details..."></textarea>
+      </div>
+    </div>
+    <div class="ce-footer">
+      <button class="ce-save" onclick="saveCardEditor()">Save →</button>
+      <button class="ce-cancel" onclick="closeCardEditor()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="page-wrap">
+
+  <!-- Internal Tab Nav -->
+  <div class="tab-nav">
+    <button class="nav-tab" onclick="switchTab('profile', this)">Profile</button>
+    <button class="nav-tab active" onclick="switchTab('quest', this)">Quest Card</button>
+    <button class="nav-tab" onclick="switchTab('wheel', this)">Wheel of Life</button>
+    <button class="nav-tab" onclick="switchTab('fresh', this)">FRESH Check-in</button>
+    <div class="nav-util-group">
+      <button class="nav-util-btn export-btn" onclick="exportAllData()"
+        data-tooltip="Download a JSON file with a full snapshot of all your data — quest cards, wheel check-ins, FRESH logs, archive, and XP. Save this as a backup or to transfer to another device.">
+        ↓ Export
+      </button>
+      <button class="nav-util-btn import-btn" onclick="document.getElementById('import-file-input').click()"
+        data-tooltip="Import a previously exported JSON backup file to restore your data.&#10;&#10;How to import:&#10;1. Click this button&#10;2. Select the .json file you exported earlier&#10;&#10;Your current data will be replaced with the imported snapshot. Export first if you want to keep a backup of what's here now.">
+        ↑ Import
+      </button>
+      <input type="file" id="import-file-input" accept=".json" style="display:none" onchange="importAllData(event)">
+      <button class="nav-util-btn" onclick="openUpdatesModal()" style="border-color:rgba(167,139,250,0.2);color:rgba(167,139,250,0.5);">
+        ↻ Updates
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ QUEST CARD TAB ══ -->
+  <div class="section active" id="quest">
+    <div class="qc-header">
+      <div class="qc-name-row">
+        <div>
+          <span class="qc-name" id="qc-name" contenteditable="true" spellcheck="false">Questor</span>
+          <span class="qc-name-hint">dbl-click to rename</span>
+          <div class="qc-level" id="qc-level">Level 1</div>
+        </div>
+      </div>
+      <div>
+        <span class="qc-date" id="qc-date"></span>
+        <span style="font-family:'Space Mono',monospace;font-size:0.65rem;color:#D97706;margin-left:1rem;" id="qc-xp-display">0</span>
+        <span style="font-family:'Space Mono',monospace;font-size:0.55rem;color:rgba(217,119,6,0.5);"> XP</span>
+      </div>
+    </div>
+
+    <div class="xp-bar-wrap">
+      <div class="xp-bar-label">
+        <span>Experience Points</span>
+        <span id="xp-bar-text">0 / 500 XP to next level</span>
+      </div>
+      <div class="xp-track">
+        <div class="xp-fill" id="xp-fill"></div>
+      </div>
+      <div class="xp-pills">
+        <button class="xp-pill" style="color:#D97706;border-color:#D97706" onclick="addXP(50,'ASSIST — supported someone else 🤝')" title="+50 ASSIST XP">+50 ASSIST 🤝</button>
+      </div>
+    </div>
+
+    <div class="qc-board">
+      <div class="qc-columns">
+        <div class="col-header ql">Quest<br>Labs</div>
+        <div class="col-header school">School<br>Work</div>
+        <div class="col-header work">Work /<br>Research</div>
+        <div class="col-header home">Home</div>
+        <div class="col-header joy">Joy of<br>Being</div>
+      </div>
+      <div class="qc-grid" id="qc-grid"></div>
+    </div>
+
+    <div class="overflow-tasks">
+      <div class="overflow-title">Overflow / Sidequests</div>
+      <div class="overflow-grid" id="overflow-grid"></div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-violet" onclick="exportCard()">📋 Copy summary</button>
+      <button class="btn btn-teal" onclick="archiveCompleted()">✓ Archive completed</button>
+      <button class="btn" onclick="resetCard()">↺ Reset card</button>
+    </div>
+
+    <!-- ══ ARCHIVE ══ -->
+    <div class="archive-wrap" id="archive-wrap">
+      <div class="archive-header" onclick="toggleArchive()">
+        <span class="archive-title">Completed Archive</span>
+        <span class="archive-count" id="archive-count">0</span>
+        <button class="archive-clear-btn" onclick="clearArchive(event)" title="Clear all archived cards">Clear all</button>
+        <span class="archive-chevron" id="archive-chevron">▸</span>
+      </div>
+      <div class="archive-grid" id="archive-grid" style="display:none"></div>
+    </div>
+  </div>
+
+  <!-- ══ WHEEL OF LIFE TAB ══ -->
+  <div class="section" id="wheel">
+    <div class="wol-wrap">
+      <div class="wol-canvas-wrap">
+        <div class="wol-title">Wheel of Life</div>
+        <div class="wol-subtitle">1 = not satisfied · 5 = completely satisfied</div>
+        <canvas id="wol-canvas" width="320" height="320"></canvas>
+        <button class="wol-cta" onclick="saveWheelSnapshot()">💾 Save this check-in</button>
+      </div>
+
+      <div class="wol-sliders" id="wol-sliders"></div>
+
+      <div class="wol-history" id="wol-history">
+        <div class="history-title">Check-in History</div>
+        <table class="history-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Digital Diet</th>
+              <th>Organization</th>
+              <th>Friends</th>
+              <th>Family</th>
+              <th>Relationships</th>
+              <th>School-work</th>
+              <th>Fun</th>
+              <th>Health</th>
+              <th>Growth</th>
+              <th>Avg</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="history-body">
+            <tr><td colspan="12" style="color:rgba(167,139,250,0.4);font-style:italic;font-size:0.72rem;padding:1rem;font-family:'Space Mono',monospace;">No check-ins yet. Move the sliders and save your first one.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ PROFILE TAB ══ -->
+  <div class="section" id="profile">
+    <div class="qp-card">
+
+      <!-- Left vertical label -->
+      <div class="qp-spine">QUESTOR PROFILE</div>
+
+      <!-- Left panel -->
+      <div class="qp-left">
+        <!-- Portrait -->
+        <div class="qp-portrait-wrap" onclick="document.getElementById('portrait-file-input').click()" title="Click to upload portrait">
+          <img id="qp-portrait-img" src="" alt="Portrait" class="qp-portrait-img" style="display:none" />
+          <div id="qp-portrait-placeholder" class="qp-portrait-placeholder">
+            <span style="font-size:2rem;opacity:0.3">✦</span>
+            <span style="font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:0.12em;text-transform:uppercase;color:rgba(167,139,250,0.4);margin-top:0.4rem">Click to upload</span>
+          </div>
+          <input type="file" id="portrait-file-input" accept="image/*" style="display:none" onchange="handlePortraitUpload(event)" />
+        </div>
+
+        <!-- I Am -->
+        <div class="qp-iam-wrap">
+          <div class="qp-field-label">I am…</div>
+          <div class="qp-inline-field" id="qp-iAm" contenteditable="true" spellcheck="false" data-key="iAm" data-placeholder="Describe yourself in a few words"></div>
+        </div>
+
+        <!-- Name & Level -->
+        <div class="qp-name-level">
+          <div><span class="qp-field-label">Name</span> <span class="qp-stat-val" id="qp-profile-name">—</span></div>
+          <div><span class="qp-field-label">Level</span> <span class="qp-stat-val" id="qp-profile-level">1</span></div>
+          <div><span class="qp-field-label">XP</span> <span class="qp-stat-val" id="qp-profile-xp">0</span></div>
+        </div>
+
+        <!-- About Me -->
+        <div class="qp-about">
+          <div class="qp-about-title">About Me</div>
+          <div class="qp-about-row"><span class="qp-about-label">Age</span><div class="qp-inline-field" contenteditable="true" spellcheck="false" data-key="about.age" data-placeholder="…"></div></div>
+          <div class="qp-about-row"><span class="qp-about-label">Fave Food</span><div class="qp-inline-field" contenteditable="true" spellcheck="false" data-key="about.faveFood" data-placeholder="…"></div></div>
+          <div class="qp-about-row"><span class="qp-about-label">Fave Movie</span><div class="qp-inline-field" contenteditable="true" spellcheck="false" data-key="about.faveMovie" data-placeholder="…"></div></div>
+          <div class="qp-about-row"><span class="qp-about-label">Fave Subject</span><div class="qp-inline-field" contenteditable="true" spellcheck="false" data-key="about.faveSubject" data-placeholder="…"></div></div>
+          <div class="qp-about-row"><span class="qp-about-label">Dream Job</span><div class="qp-inline-field" contenteditable="true" spellcheck="false" data-key="about.dreamJob" data-placeholder="…"></div></div>
+          <div class="qp-about-row"><span class="qp-about-label">Who I Admire</span><div class="qp-inline-field" contenteditable="true" spellcheck="false" data-key="about.whoIAdmire" data-placeholder="…"></div></div>
+        </div>
+      </div>
+
+      <!-- Right panel — 7 questions -->
+      <div class="qp-right">
+        <div class="qp-q-item">
+          <div class="qp-q-header"><span class="qp-q-title">What I Love to Do</span><span class="qp-q-num" style="background:#7C3AED">1</span></div>
+          <div class="qp-inline-field qp-q-body" contenteditable="true" spellcheck="false" data-key="q1" data-placeholder="Three of my favorite things to do are…"></div>
+        </div>
+        <div class="qp-q-item">
+          <div class="qp-q-header"><span class="qp-q-title">What's Important to Me</span><span class="qp-q-num" style="background:#0D9488">2</span></div>
+          <div class="qp-inline-field qp-q-body" contenteditable="true" spellcheck="false" data-key="q2" data-placeholder="My top values are…"></div>
+        </div>
+        <div class="qp-q-item">
+          <div class="qp-q-header"><span class="qp-q-title">How I Interpret the World</span><span class="qp-q-num" style="background:#BE123C">3</span></div>
+          <div class="qp-inline-field qp-q-body" contenteditable="true" spellcheck="false" data-key="q3" data-placeholder="My learning style is…"></div>
+        </div>
+        <div class="qp-q-item">
+          <div class="qp-q-header"><span class="qp-q-title">What I'm Best At</span><span class="qp-q-num" style="background:#D97706">4</span></div>
+          <div class="qp-inline-field qp-q-body" contenteditable="true" spellcheck="false" data-key="q4" data-placeholder="My top strengths are…"></div>
+        </div>
+        <div class="qp-q-item">
+          <div class="qp-q-header"><span class="qp-q-title">Positive Things I Say About Myself</span><span class="qp-q-num" style="background:#A78BFA;color:#1a0b2b">5</span></div>
+          <div class="qp-inline-field qp-q-body" contenteditable="true" spellcheck="false" data-key="q5" data-placeholder="Write 1–2 affirmations here…"></div>
+        </div>
+        <div class="qp-q-item">
+          <div class="qp-q-header"><span class="qp-q-title">Ways I Want to Make a Difference</span><span class="qp-q-num" style="background:#EC4899">6</span></div>
+          <div class="qp-inline-field qp-q-body" contenteditable="true" spellcheck="false" data-key="q6" data-placeholder="I want to…"></div>
+        </div>
+        <div class="qp-q-item">
+          <div class="qp-q-header"><span class="qp-q-title">Who I Want to Be</span><span class="qp-q-num" style="background:#6366F1">7</span></div>
+          <div class="qp-inline-field qp-q-body" contenteditable="true" spellcheck="false" data-key="q7" data-placeholder="When I envision my future self…"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ FRESH CHECK-IN TAB ══ -->
+  <div class="section" id="fresh">
+    <div class="fresh-wrap">
+      <div class="fresh-tab-bar">
+        <button class="fresh-tab-btn active" data-panel="checkin" onclick="freshShowPanel('checkin', this)">Check-in</button>
+        <button class="fresh-tab-btn" data-panel="delta" onclick="freshShowPanel('delta', this)">What shifted?</button>
+      </div>
+
+      <!-- CHECK-IN PANEL -->
+      <div id="fresh-panel-checkin" class="fresh-panel active">
+        <div class="fresh-intro">
+          <div class="fresh-section-label">Today's reading</div>
+          <h2 class="fresh-h2">How are you showing up <em>right now?</em></h2>
+          <p class="fresh-p">Rate each dimension from 1 (depleted) to 10 (fully resourced). No right answers — just honest ones.</p>
+        </div>
+        <div id="fresh-dims-container"></div>
+        <div class="fresh-madlib-wrap">
+          <div class="fresh-madlib-eyebrow">Reflection · Mad lib</div>
+          <div class="fresh-madlib-body" id="fresh-madlib-text"></div>
+          <div class="fresh-tier-pills">
+            <button class="fresh-tier-pill ft-good active" data-tier="good" onclick="freshSetTier('good', this)">Good</button>
+            <button class="fresh-tier-pill ft-better" data-tier="better" onclick="freshSetTier('better', this)">Better</button>
+            <button class="fresh-tier-pill ft-best" data-tier="best" onclick="freshSetTier('best', this)">Best</button>
+          </div>
+        </div>
+        <div class="fresh-submit-area">
+          <button class="fresh-btn-primary" onclick="freshSubmitEntry()">Log this check-in →</button>
+          <span class="fresh-save-toast" id="fresh-toast">Saved ✓</span>
+        </div>
+      </div>
+
+      <!-- DELTA PANEL -->
+      <div id="fresh-panel-delta" class="fresh-panel">
+        <div class="fresh-intro">
+          <div class="fresh-section-label">Movement + pattern</div>
+          <h2 class="fresh-h2">What shifted?</h2>
+          <p class="fresh-p">Compare any two check-ins to see how each FRESH dimension moved — and read the story your scores are telling.</p>
+        </div>
+        <div id="fresh-delta-no-data" class="fresh-no-data">
+          <strong>Nothing logged yet.</strong>
+          Complete at least one check-in to see your delta view. Two or more unlocks the full comparison.
+        </div>
+        <div id="fresh-delta-content" style="display:none">
+          <div class="fresh-entry-row">
+            <label class="fresh-label">From</label>
+            <select id="fresh-sel-from" onchange="freshRenderDelta()"></select>
+            <label class="fresh-label">To</label>
+            <select id="fresh-sel-to" onchange="freshRenderDelta()"></select>
+          </div>
+          <div class="fresh-bump-container">
+            <div class="fresh-bump-title">Dimension trajectory</div>
+            <div class="fresh-bump-subtitle">Each line tracks one FRESH dimension across all check-ins</div>
+            <svg id="freshBumpSvg" height="200" style="width:100%;overflow:visible"></svg>
+          </div>
+          <div class="fresh-section-label" style="margin-top:1.5rem">Shift between selected check-ins</div>
+          <div class="fresh-delta-bars" id="fresh-delta-bars"></div>
+          <div class="fresh-narrative-card">
+            <div class="fresh-narrative-eyebrow">What the shift says</div>
+            <div class="fresh-narrative-text" id="fresh-delta-narrative"></div>
+          </div>
+          <div class="fresh-data-section">
+            <div class="fresh-section-label">Session log</div>
+            <div class="fresh-table-wrap">
+              <table class="fresh-table">
+                <thead><tr><th>#</th><th>Time</th><th>F</th><th>R</th><th>E</th><th>S</th><th>H</th><th>Avg</th><th>Tier</th></tr></thead>
+                <tbody id="fresh-log-body"></tbody>
+              </table>
+            </div>
+            <button class="fresh-export-btn" onclick="freshExportData()">Export JSON ↓</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script is:inline>
+// ══ DATA ══
+const COLUMNS = [
+  { id:'ql', label:'Quest Labs', color:'#7C3AED' },
+  { id:'school', label:'School Work', color:'#0D9488' },
+  { id:'work', label:'Work / Research', color:'#BE123C' },
+  { id:'home', label:'Home', color:'#D97706' },
+  { id:'joy', label:'Joy of Being', color:'#A78BFA' },
+];
+
+const SP_VALUES = [1, 2, 3, 5, 8, 13, 21];
+
+// Default cells — empty board on first run
+const DEFAULT_CELLS = [];
+
+
+const WOL_AREAS = [
+  { label: 'Digital Diet', color: '#7C3AED' },
+  { label: 'Organization', color: '#0D9488' },
+  { label: 'Friends', color: '#BE123C' },
+  { label: 'Family', color: '#D97706' },
+  { label: 'Relationships', color: '#EC4899' },
+  { label: 'School-work', color: '#A78BFA' },
+  { label: 'Fun / Play', color: '#CCFBF1' },
+  { label: 'Health', color: '#FEF3C7' },
+  { label: 'Growth', color: '#EDE9FE' },
+];
+
+const COL_CLASSES = ['ql-col','school-col','work-col','home-col','joy-col'];
+const COL_ID_TO_IDX = { ql:0, school:1, work:2, home:3, joy:4 };
+const COL_XP = [25, 20, 20, 15, 30];
+
+
+// ══ STATE ══
+// cells: [{ text, xp, done, col }]  col = 0-4 (grid column) or -1 (overflow)
+let state = {
+  name: '',
+  xp: 0,
+  xpLog: [],
+  cells: [],
+  overflow: [],   // kept for migration only
+  archive: [],    // [{ text, xp, col, archivedAt }]
+  wheel: [3,3,3,3,3,3,3,3,3],
+  wheelHistory: [],
+};
+
+function makeDefaultCells() {
+  return DEFAULT_CELLS.map(c => ({ ...c }));
+}
+
+// ── INIT ──
+async function init() {
+  state.cells = makeDefaultCells();
+  await loadStateFromDB();
+  renderQuestCard();
+  renderWheelSliders();
+  renderWheel();
+  setDate();
+  updateIdentity();
+  initNameEdit();
+}
+
+function setDate() {
+  const d = new Date();
+  document.getElementById('qc-date').textContent = d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+}
+
+// ── TABS ──
+function switchTab(id, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── NAME (inline edit) ──
+function initNameEdit() {
+  const el = document.getElementById('qc-name');
+  el.addEventListener('blur', () => {
+    const name = el.textContent.trim();
+    state.name = name || 'Questor';
+    if (!name) el.textContent = 'Questor';
+    saveState();
+  });
+  el.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); el.blur(); }
+    if (e.key === 'Escape') { el.textContent = state.name || 'Questor'; el.blur(); }
+  });
+  // Close card editor on Escape
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeCardEditor();
+    if (e.key === 'Enter' && document.getElementById('ce-overlay').style.display !== 'none') {
+      if (document.activeElement === document.getElementById('ce-title')) saveCardEditor();
+    }
+  });
+}
+
+function updateIdentity() {
+  const el = document.getElementById('qc-name');
+  if (document.activeElement !== el) {
+    el.textContent = state.name || 'Questor';
+  }
+  updateXPDisplay();
+}
+
+// ── QUEST CARD RENDER ──
+function renderQuestCard() {
+  const grid = document.getElementById('qc-grid');
+  grid.innerHTML = '';
+
+  // Build 5 column lanes
+  for (let colIdx = 0; colIdx < 5; colIdx++) {
+    const lane = document.createElement('div');
+    lane.className = 'qc-col-lane';
+    lane.dataset.col = colIdx;
+
+    state.cells.forEach((cell, i) => {
+      if (cell.col === colIdx) lane.appendChild(createGridCard(cell, i));
+    });
+
+    lane.addEventListener('dragover', e => { e.preventDefault(); lane.classList.add('drag-over'); });
+    lane.addEventListener('dragleave', e => { if (!lane.contains(e.relatedTarget)) lane.classList.remove('drag-over'); });
+    lane.addEventListener('drop', e => handleDropOnCol(e, colIdx));
+
+    const addBtn = document.createElement('button');
+    addBtn.className = 'col-add-btn';
+    addBtn.innerHTML = '+ Add card';
+    addBtn.onclick = () => addCardToColumn(colIdx);
+    lane.appendChild(addBtn);
+
+    grid.appendChild(lane);
+  }
+
+  renderOverflow();
+  updateXPDisplay();
+}
+
+function createGridCard(cell, idx) {
+  const div = document.createElement('div');
+  const colIdx = cell.col >= 0 ? cell.col : 0;
+  div.className = `qc-cell ${COL_CLASSES[colIdx]} ${cell.done ? 'done' : ''}`;
+  div.dataset.idx = idx;
+  div.draggable = true;
+  const sp = cell.storyPoints || 1;
+  div.innerHTML = `
+    <span class="cell-star">★</span>
+    <button class="cell-edit-btn" title="Edit task">✎</button>
+    <div class="cell-text">${cell.text}</div>
+    <div class="sp-badge">SP ${sp}</div>
+  `;
+
+  div.addEventListener('click', e => {
+    if (e.target.closest('.cell-edit-btn')) return;
+    toggleCell(idx);
+  });
+  div.querySelector('.cell-edit-btn').addEventListener('click', e => {
+    e.stopPropagation();
+    openCardEditor(idx);
+  });
+
+  div.addEventListener('dragstart', e => {
+    e.dataTransfer.setData('text/plain', JSON.stringify({ type: 'cell', idx }));
+    e.dataTransfer.effectAllowed = 'move';
+    setTimeout(() => div.classList.add('dragging'), 0);
+  });
+  div.addEventListener('dragend', () => {
+    div.classList.remove('dragging');
+    document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+  });
+
+  return div;
+}
+
+function renderOverflow() {
+  const og = document.getElementById('overflow-grid');
+  og.innerHTML = '';
+
+  state.cells.forEach((cell, i) => {
+    if (cell.col !== -1) return;
+    const card = document.createElement('div');
+    const sp = cell.storyPoints || 1;
+    card.className = `qc-cell ql-col ${cell.done ? 'done' : ''}`;
+    card.style.cssText = 'border-color:rgba(124,58,237,0.2);background:rgba(124,58,237,0.05);';
+    card.dataset.idx = i;
+    card.draggable = true;
+    card.innerHTML = `
+      <span class="cell-star">★</span>
+      <button class="cell-edit-btn" title="Edit task">✎</button>
+      <div class="cell-text">${cell.text}</div>
+      <div class="sp-badge">SP ${sp}</div>
+    `;
+
+    card.addEventListener('click', e => {
+      if (e.target.closest('.cell-edit-btn')) return;
+      state.cells[i].done = !state.cells[i].done;
+      const xpVal = (state.cells[i].storyPoints || 1) * 10;
+      if (state.cells[i].done) {
+        addXP(xpVal, state.cells[i].text);
+      } else {
+        state.xp = Math.max(0, state.xp - xpVal);
+        updateXPDisplay();
+      }
+      renderQuestCard();
+      saveState();
+    });
+    card.querySelector('.cell-edit-btn').addEventListener('click', e => {
+      e.stopPropagation();
+      openCardEditor(i);
+    });
+
+    card.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/plain', JSON.stringify({ type: 'cell', idx: i }));
+      e.dataTransfer.effectAllowed = 'move';
+      setTimeout(() => card.classList.add('dragging'), 0);
+    });
+    card.addEventListener('dragend', () => {
+      card.classList.remove('dragging');
+      document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+    });
+
+    og.appendChild(card);
+  });
+
+  const addBtn = document.createElement('button');
+  addBtn.className = 'add-overflow';
+  addBtn.textContent = '+ add sidequest';
+  addBtn.onclick = addOverflow;
+  og.appendChild(addBtn);
+
+  // Wire overflow drop zone
+  og.addEventListener('dragover', e => { e.preventDefault(); og.classList.add('drag-over'); });
+  og.addEventListener('dragleave', e => { if (!og.contains(e.relatedTarget)) og.classList.remove('drag-over'); });
+  og.addEventListener('drop', e => handleDropOnOverflow(e));
+}
+
+function handleDropOnCol(e, targetCol) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  try {
+    const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+    if (data.type === 'cell') {
+      state.cells[data.idx].col = targetCol;
+      renderQuestCard();
+      saveState();
+    }
+  } catch(_) {}
+}
+
+function handleDropOnOverflow(e) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  try {
+    const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+    if (data.type === 'cell' && state.cells[data.idx].col !== -1) {
+      state.cells[data.idx].col = -1;
+      renderQuestCard();
+      saveState();
+    }
+  } catch(_) {}
+}
+
+function toggleCell(i) {
+  state.cells[i].done = !state.cells[i].done;
+  const xpVal = (state.cells[i].storyPoints || 1) * 10;
+  if (state.cells[i].done) {
+    addXP(xpVal, state.cells[i].text);
+  } else {
+    state.xp = Math.max(0, state.xp - xpVal);
+    updateXPDisplay();
+  }
+  renderQuestCard();
+  saveState();
+}
+
+// ── CARD EDITOR ──
+let _editingIdx = null;
+let _activeSP = 1;
+let _isNewCard = false;
+
+function addCardToColumn(col) {
+  state.cells.push({ text: '', storyPoints: 1, xp: 10, description: '', done: false, col });
+  renderQuestCard();
+  openCardEditor(state.cells.length - 1, true);
+}
+
+function openCardEditor(idx, isNew = false) {
+  _editingIdx = idx;
+  _isNewCard = isNew;
+  const cell = state.cells[idx];
+  document.getElementById('ce-title').value = cell.text || '';
+  document.getElementById('ce-title').placeholder = 'Task name';
+  document.getElementById('ce-desc').value = cell.description || '';
+  buildSPButtons(cell.storyPoints || 1);
+  document.getElementById('ce-overlay').style.display = 'flex';
+  document.getElementById('ce-title').focus();
+}
+
+function closeCardEditor() {
+  if (_isNewCard && _editingIdx !== null) {
+    state.cells.splice(_editingIdx, 1);
+    renderQuestCard();
+  }
+  document.getElementById('ce-overlay').style.display = 'none';
+  _editingIdx = null;
+  _isNewCard = false;
+}
+
+function ceOverlayClick(e) {
+  if (e.target === document.getElementById('ce-overlay')) closeCardEditor();
+}
+
+function buildSPButtons(activeSP) {
+  _activeSP = activeSP;
+  const row = document.getElementById('ce-sp-row');
+  row.innerHTML = '';
+  SP_VALUES.forEach(sp => {
+    const btn = document.createElement('button');
+    btn.className = 'ce-sp-btn' + (sp === activeSP ? ' active' : '');
+    btn.textContent = sp;
+    btn.dataset.sp = sp;
+    btn.type = 'button';
+    btn.onclick = () => {
+      _activeSP = sp;
+      row.querySelectorAll('.ce-sp-btn').forEach(b => b.classList.toggle('active', parseInt(b.dataset.sp) === sp));
+    };
+    row.appendChild(btn);
+  });
+}
+
+function saveCardEditor() {
+  if (_editingIdx === null) return;
+  const title = document.getElementById('ce-title').value.trim();
+  if (!title) { closeCardEditor(); return; }
+  const desc  = document.getElementById('ce-desc').value.trim();
+  state.cells[_editingIdx].text        = title;
+  state.cells[_editingIdx].description = desc;
+  state.cells[_editingIdx].storyPoints = _activeSP;
+  state.cells[_editingIdx].xp          = _activeSP * 10;
+  _isNewCard = false;
+  renderQuestCard();
+  saveState();
+  closeCardEditor();
+}
+
+function addOverflow() {
+  state.cells.push({ text: '', storyPoints: 1, xp: 10, description: '', done: false, col: -1 });
+  renderQuestCard();
+  openCardEditor(state.cells.length - 1, true);
+}
+
+// ── XP ──
+function addXP(amount, label) {
+  state.xp += amount;
+  state.xpLog.unshift({ amount, label, time: new Date().toLocaleTimeString() });
+  updateXPDisplay();
+  saveState();
+}
+
+function updateXPDisplay() {
+  const xp = state.xp;
+  const level = Math.floor(xp / 500) + 1;
+  document.getElementById('qc-xp-display').textContent = xp;
+  const pct = Math.min((xp % 500) / 500 * 100, 100);
+  document.getElementById('xp-fill').style.width = pct + '%';
+  document.getElementById('xp-bar-text').textContent = `${xp % 500} / 500 XP to next level`;
+  const levelEl = document.getElementById('qc-level');
+  if (levelEl) levelEl.textContent = `Level ${level}`;
+}
+
+function exportCard() {
+  const done = state.cells.filter(c => c.done).map(c => c.text);
+  const text = `Quest Card — ${state.name}\nXP: ${state.xp}\nCompleted: ${done.join(', ') || 'none yet'}`;
+  navigator.clipboard.writeText(text).then(() => alert('Copied to clipboard!'));
+}
+
+function resetCard() {
+  document.getElementById('reset-overlay').style.display = 'flex';
+}
+
+function closeResetModal() {
+  document.getElementById('reset-overlay').style.display = 'none';
+}
+
+function confirmReset(clearXP) {
+  state.cells = makeDefaultCells();
+  if (clearXP) {
+    state.xp = 0;
+    state.xpLog = [];
+  }
+  closeResetModal();
+  renderQuestCard();
+  renderArchive();
+  updateXPDisplay();
+  saveState();
+}
+
+// ── ARCHIVE ──
+function archiveCompleted() {
+  const completed = state.cells.filter(c => c.done);
+  if (!completed.length) return;
+  const now = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  completed.forEach(c => {
+    state.archive.unshift({ text: c.text, xp: c.xp, col: c.col, archivedAt: now });
+  });
+  state.cells = state.cells.filter(c => !c.done);
+  renderQuestCard();
+  renderArchive();
+  saveState();
+}
+
+function toggleArchive() {
+  const grid = document.getElementById('archive-grid');
+  const chevron = document.getElementById('archive-chevron');
+  const open = grid.style.display === 'none';
+  grid.style.display = open ? 'flex' : 'none';
+  chevron.classList.toggle('open', open);
+}
+
+function clearArchive(e) {
+  e.stopPropagation();
+  if (!state.archive.length) return;
+  if (!confirm('Permanently delete all archived cards?')) return;
+  state.archive = [];
+  renderArchive();
+  saveState();
+}
+
+function renderArchive() {
+  const count = document.getElementById('archive-count');
+  const grid = document.getElementById('archive-grid');
+  if (!count || !grid) return;
+  count.textContent = state.archive.length;
+
+  const COL_COLORS = ['#7C3AED','#0D9488','#BE123C','#D97706','#A78BFA'];
+  grid.innerHTML = '';
+  if (!state.archive.length) {
+    grid.innerHTML = '<div style="font-family:\'Space Mono\',monospace;font-size:0.55rem;color:rgba(13,148,136,0.4);padding:0.5rem 0;">No archived cards yet.</div>';
+    return;
+  }
+  state.archive.forEach((card, i) => {
+    const div = document.createElement('div');
+    div.className = 'archive-card';
+    const dotColor = COL_COLORS[card.col >= 0 ? card.col : 0];
+    div.innerHTML = `
+      <div class="archive-col-dot" style="background:${dotColor}"></div>
+      <div class="archive-card-text">${card.text}</div>
+      <div class="archive-card-date">${card.archivedAt}</div>
+      <button class="archive-card-restore" title="Restore to board" onclick="restoreArchived(${i})">↩</button>
+    `;
+    grid.appendChild(div);
+  });
+}
+
+function restoreArchived(i) {
+  const card = state.archive[i];
+  state.cells.push({ text: card.text, xp: card.xp, done: false, col: card.col >= 0 ? card.col : 0 });
+  state.archive.splice(i, 1);
+  renderQuestCard();
+  renderArchive();
+  saveState();
+}
+
+// ── WHEEL OF LIFE ──
+function renderWheelSliders() {
+  const wrap = document.getElementById('wol-sliders');
+  wrap.innerHTML = '';
+  const title = document.createElement('div');
+  title.style.cssText = "font-family:'Playfair Display',serif;font-style:italic;font-size:1rem;font-weight:600;margin-bottom:0.5rem;color:#EDE9FE;";
+  title.textContent = 'Set your numbers';
+  wrap.appendChild(title);
+
+  WOL_AREAS.forEach((area, i) => {
+    const row = document.createElement('div');
+    row.className = 'wol-slider-row';
+    const color = area.color;
+    row.innerHTML = `
+      <div class="wol-area-label">
+        <div class="wol-dot" style="background:${color};"></div>
+        ${area.label}
+      </div>
+      <input type="range" class="wol-slider" min="1" max="5" step="1"
+        value="${state.wheel[i]}" id="wol-slider-${i}"
+        oninput="updateWheel(${i}, this.value)">
+      <div class="wol-val" id="wol-val-${i}">${state.wheel[i]}</div>
+    `;
+    wrap.appendChild(row);
+  });
+
+  const notice = document.createElement('div');
+  notice.className = 'wol-notice';
+  notice.id = 'wol-notice';
+  notice.textContent = 'What do you notice?';
+  wrap.appendChild(notice);
+}
+
+function updateWheel(i, val) {
+  state.wheel[i] = parseInt(val);
+  document.getElementById(`wol-val-${i}`).textContent = val;
+  renderWheel();
+  updateWheelNotice();
+  saveState();
+}
+
+function updateWheelNotice() {
+  const vals = state.wheel;
+  const min = Math.min(...vals);
+  const max = Math.max(...vals);
+  const minArea = WOL_AREAS[vals.indexOf(min)].label;
+  const maxArea = WOL_AREAS[vals.indexOf(max)].label;
+  const avg = (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1);
+  const noticeEl = document.getElementById('wol-notice');
+  if (noticeEl) {
+    noticeEl.textContent = `Your wheel averages ${avg}/5. Highest: ${maxArea} (${max}). Needs attention: ${minArea} (${min}).`;
+  }
+}
+
+function renderWheel() {
+  const canvas = document.getElementById('wol-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const cx = W/2, cy = H/2;
+  const maxR = W/2 - 30;
+  const n = WOL_AREAS.length;
+  ctx.clearRect(0, 0, W, H);
+
+  const colors = WOL_AREAS.map(a => a.color);
+
+  // Draw grid rings
+  for (let r = 1; r <= 5; r++) {
+    ctx.beginPath();
+    for (let i = 0; i < n; i++) {
+      const angle = (i / n) * Math.PI * 2 - Math.PI/2;
+      const x = cx + Math.cos(angle) * (maxR * r/5);
+      const y = cy + Math.sin(angle) * (maxR * r/5);
+      i === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+    }
+    ctx.closePath();
+    ctx.strokeStyle = 'rgba(124,58,237,0.2)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  // Draw spokes
+  for (let i = 0; i < n; i++) {
+    const angle = (i / n) * Math.PI * 2 - Math.PI/2;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + Math.cos(angle)*maxR, cy + Math.sin(angle)*maxR);
+    ctx.strokeStyle = 'rgba(124,58,237,0.15)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  // Draw filled polygon
+  ctx.beginPath();
+  for (let i = 0; i < n; i++) {
+    const angle = (i / n) * Math.PI * 2 - Math.PI/2;
+    const r = (state.wheel[i] / 5) * maxR;
+    const x = cx + Math.cos(angle) * r;
+    const y = cy + Math.sin(angle) * r;
+    i === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+  }
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(124,58,237,0.15)';
+  ctx.fill();
+  ctx.strokeStyle = '#7C3AED';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Draw dots
+  for (let i = 0; i < n; i++) {
+    const angle = (i / n) * Math.PI * 2 - Math.PI/2;
+    const r = (state.wheel[i] / 5) * maxR;
+    const x = cx + Math.cos(angle) * r;
+    const y = cy + Math.sin(angle) * r;
+    ctx.beginPath();
+    ctx.arc(x, y, 5, 0, Math.PI*2);
+    ctx.fillStyle = colors[i];
+    ctx.strokeStyle = '#0D0B1E';
+    ctx.lineWidth = 1.5;
+    ctx.fill();
+    ctx.stroke();
+  }
+
+  // Labels
+  ctx.font = 'bold 9px Mulish, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  for (let i = 0; i < n; i++) {
+    const angle = (i / n) * Math.PI * 2 - Math.PI/2;
+    const lx = cx + Math.cos(angle) * (maxR + 20);
+    const ly = cy + Math.sin(angle) * (maxR + 20);
+    ctx.fillStyle = colors[i];
+    ctx.fillText(WOL_AREAS[i].label, lx, ly);
+  }
+}
+
+function saveWheelSnapshot() {
+  const entry = {
+    date: new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),
+    values: [...state.wheel],
+    avg: (state.wheel.reduce((a,b)=>a+b,0)/state.wheel.length).toFixed(1)
+  };
+  state.wheelHistory.unshift(entry);
+  addXP(20, 'Wheel of Life check-in completed 🎡');
+  renderHistoryTable();
+  saveState();
+}
+
+function renderHistoryTable() {
+  const body = document.getElementById('history-body');
+  if (!state.wheelHistory.length) {
+    body.innerHTML = `<tr><td colspan="12" style="color:rgba(167,139,250,0.4);font-style:italic;font-size:0.72rem;padding:1rem;font-family:'Space Mono',monospace;">No check-ins yet.</td></tr>`;
+    return;
+  }
+  const colors = WOL_AREAS.map(a => a.color);
+  body.innerHTML = state.wheelHistory.map((h, i) => `
+    <tr>
+      <td style="color:rgba(167,139,250,0.5);font-family:'Space Mono',monospace;font-size:0.6rem">${h.date}</td>
+      ${h.values.map((v,j) => `<td><span class="score-dot" style="background:${colors[j]}">${v}</span></td>`).join('')}
+      <td><strong style="color:#D97706">${h.avg}</strong></td>
+      <td><button class="history-delete-btn" onclick="deleteWheelEntry(${i})" title="Remove this entry">✕</button></td>
+    </tr>
+  `).join('');
+}
+
+function deleteWheelEntry(i) {
+  state.wheelHistory.splice(i, 1);
+  renderHistoryTable();
+  saveState();
+}
+
+// ── EXPORT / IMPORT ──
+function exportAllData() {
+  const snapshot = {
+    exportedAt: new Date().toISOString(),
+    version: 1,
+    state: JSON.parse(JSON.stringify(state)),
+  };
+  snapshot.state.freshEntries = freshEntries;
+  const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'questlabs_backup_' + new Date().toISOString().split('T')[0] + '.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function importAllData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      // Accept both raw state or a wrapped snapshot
+      const incoming = parsed.state || parsed;
+      Object.assign(state, incoming);
+      if (incoming.freshEntries) freshEntries = incoming.freshEntries;
+      if (!state.archive) state.archive = [];
+      if (!state.wheelHistory) state.wheelHistory = [];
+      if (!state.xpLog) state.xpLog = [];
+      if (!state.cells || !state.cells.length) state.cells = makeDefaultCells();
+      saveState();
+      renderQuestCard();
+      renderArchive();
+      renderWheelSliders();
+      renderWheel();
+      renderHistoryTable();
+      updateWheelNotice();
+      updateIdentity();
+      alert('Import successful! Your data has been restored.');
+    } catch(err) {
+      alert('Could not read that file. Make sure it\'s a valid Quest Labs JSON export.');
+    }
+    // Reset the input so the same file can be re-imported if needed
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+
+// ── PERSIST ──
+function saveState() {
+  fetch('/api/save', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      questCard: {
+        name: state.name,
+        xp: state.xp,
+        xpLog: state.xpLog,
+        cells: state.cells,
+        archive: state.archive,
+      },
+      wheelOfLife: {
+        current: state.wheel,
+        history: state.wheelHistory,
+      },
+      freshCheckin: {
+        entries: freshEntries,
+      },
+    }),
+  }).catch(() => {});
+}
+
+async function loadStateFromDB() {
+  try {
+    const res = await fetch('/api/load');
+    const db = await res.json();
+    if (db.questCard) {
+      state.name    = db.questCard.name  || '';
+      state.xp      = db.questCard.xp    || 0;
+      state.xpLog   = db.questCard.xpLog || [];
+      state.archive = db.questCard.archive || [];
+      if (db.questCard.cells && db.questCard.cells.length) {
+        state.cells = db.questCard.cells;
+      }
+    }
+    if (db.wheelOfLife) {
+      if (db.wheelOfLife.current && db.wheelOfLife.current.length === WOL_AREAS.length) {
+        state.wheel = db.wheelOfLife.current;
+      }
+      state.wheelHistory = db.wheelOfLife.history || [];
+    }
+    if (db.freshCheckin) {
+      freshEntries = db.freshCheckin.entries || [];
+    }
+    if (db.questorProfile) {
+      Object.assign(profileState, db.questorProfile);
+      if (db.questorProfile.about) Object.assign(profileState.about, db.questorProfile.about);
+    }
+  } catch (e) {
+    console.warn('Could not reach /api/load — using default state');
+  }
+}
+
+// ── UPDATES MODAL ──
+async function openUpdatesModal() {
+  document.getElementById('updates-overlay').style.display = 'flex';
+  try {
+    const res = await fetch('/api/version');
+    const { version } = await res.json();
+    document.getElementById('updates-version').textContent = `v${version}`;
+  } catch (_) {
+    document.getElementById('updates-version').textContent = 'unknown';
+  }
+}
+
+function closeUpdatesModal() {
+  document.getElementById('updates-overlay').style.display = 'none';
+}
+
+// ── QUESTOR PROFILE ──
+let profileState = {
+  portrait: '',
+  iAm: '',
+  about: { age: '', faveFood: '', faveMovie: '', faveSubject: '', dreamJob: '', whoIAdmire: '' },
+  q1: '', q2: '', q3: '', q4: '', q5: '', q6: '', q7: '',
+};
+
+function saveProfile() {
+  fetch('/api/save', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ questorProfile: profileState }),
+  }).catch(() => {});
+}
+
+function renderProfile() {
+  // Stats from quest card state
+  const level = Math.floor(state.xp / 500) + 1;
+  document.getElementById('qp-profile-name').textContent = state.name || 'Questor';
+  document.getElementById('qp-profile-level').textContent = level;
+  document.getElementById('qp-profile-xp').textContent = state.xp;
+
+  // Portrait
+  if (profileState.portrait) {
+    const img = document.getElementById('qp-portrait-img');
+    img.src = `/portraits/${profileState.portrait}`;
+    img.style.display = 'block';
+    document.getElementById('qp-portrait-placeholder').style.display = 'none';
+  }
+}
+
+function initProfileFields() {
+  document.querySelectorAll('.qp-inline-field').forEach(el => {
+    const key = el.dataset.key;
+    // Set initial value
+    const val = key.startsWith('about.')
+      ? profileState.about[key.slice(6)]
+      : profileState[key];
+    if (val) el.textContent = val;
+
+    el.addEventListener('blur', () => {
+      const trimmed = el.textContent.trim();
+      if (key.startsWith('about.')) {
+        profileState.about[key.slice(6)] = trimmed;
+      } else {
+        profileState[key] = trimmed;
+      }
+      saveProfile();
+    });
+
+    el.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); el.blur(); }
+      if (e.key === 'Escape') { el.blur(); }
+    });
+  });
+}
+
+async function handlePortraitUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const formData = new FormData();
+  formData.append('portrait', file);
+  try {
+    const res = await fetch('/api/upload-portrait', { method: 'POST', body: formData });
+    const { ok, filename } = await res.json();
+    if (ok) {
+      profileState.portrait = filename;
+      const img = document.getElementById('qp-portrait-img');
+      img.src = `/portraits/${filename}?t=${Date.now()}`;
+      img.style.display = 'block';
+      document.getElementById('qp-portrait-placeholder').style.display = 'none';
+      saveProfile();
+    }
+  } catch (e) {
+    console.warn('Portrait upload failed', e);
+  }
+  event.target.value = '';
+}
+
+// ── BOOT ──
+window.addEventListener('load', async () => {
+  await init();
+  renderArchive();
+  if (state.wheelHistory.length) renderHistoryTable();
+  updateWheelNotice();
+  freshBuildDims();
+  freshRenderMadlib();
+  renderProfile();
+  initProfileFields();
+});
+
+// ── FRESH CHECK-IN ──
+const FRESH_DIMS = [
+  { key:'F', name:'Focus',         desc:'Clarity, attention, presence',                      color:'#b05e3a', light:'rgba(176,94,58,0.15)' },
+  { key:'R', name:'Relationships', desc:'Connection, trust, belonging',                      color:'#4a6fa5', light:'rgba(74,111,165,0.15)' },
+  { key:'E', name:'Energy',        desc:'Physical vitality, rest, capacity',                 color:'#4a8c6e', light:'rgba(74,140,110,0.15)' },
+  { key:'S', name:'Stimuli',       desc:"What you're taking in — nourishing or depleting?", color:'#8c6a2e', light:'rgba(140,106,46,0.15)' },
+  { key:'H', name:'Habits',        desc:'Routines, rhythms, practices',                      color:'#7a4e8c', light:'rgba(122,78,140,0.15)' },
+];
+
+let freshVals = { F:5, R:5, E:5, S:5, H:5 };
+let freshTier  = 'good';
+let freshEntries = [];
+
+function freshBuildDims() {
+  const c = document.getElementById('fresh-dims-container');
+  if (!c) return;
+  c.innerHTML = FRESH_DIMS.map(d => `
+    <div class="fresh-dim-card">
+      <div class="fresh-dim-accent" style="background:${d.color}"></div>
+      <div class="fresh-dim-top">
+        <div class="fresh-dim-badge" style="background:${d.light};color:${d.color}">${d.key}</div>
+        <div class="fresh-dim-meta">
+          <div class="fresh-dim-name">${d.name}</div>
+          <div class="fresh-dim-desc">${d.desc}</div>
+        </div>
+        <div class="fresh-dim-val" id="fresh-val-${d.key}" style="color:${d.color}">${freshVals[d.key]}</div>
+      </div>
+      <div class="fresh-slider-row">
+        <span class="fresh-tick">1</span>
+        <input type="range" min="1" max="10" step="1" value="${freshVals[d.key]}"
+          style="flex:1;-webkit-appearance:none;appearance:none;height:4px;border-radius:2px;outline:none;cursor:pointer;background:linear-gradient(to right,${d.light} 0%,${d.color} 100%)"
+          oninput="freshUpdate('${d.key}', this.value)">
+        <span class="fresh-tick right">10</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function freshUpdate(key, v) {
+  freshVals[key] = parseInt(v);
+  document.getElementById('fresh-val-' + key).textContent = v;
+  freshRenderMadlib();
+}
+
+const freshPhrases = {
+  F: v => v<=3 ? 'scattered and hard to pin down'          : v<=6 ? 'present enough to move forward'               : 'clear and well-directed',
+  R: v => v<=3 ? 'a bit isolated'                          : v<=6 ? 'reasonably connected'                          : 'held and supported',
+  E: v => v<=3 ? 'running on fumes'                        : v<=6 ? 'holding steady'                                : 'fueled and ready',
+  S: v => v<=3 ? 'overwhelmed by noise'                    : v<=6 ? 'navigating a mixed-signal environment'          : "nourished by what I'm taking in",
+  H: v => v<=3 ? 'off my rhythms'                          : v<=6 ? 'loosely tethered to my routines'               : 'grounded in solid practices',
+};
+
+const freshTemplates = {
+  good:   (f,r,e,s,h) => `Right now, my focus feels <span class="fhighlight">${f}</span> and my energy is <span class="fhighlight">${e}</span>. Relationships feel <span class="fhighlight">${r}</span>, and I'm <span class="fhighlight">${s}</span>. My habits are <span class="fhighlight">${h}</span>. <em>Good enough</em> looks like honoring where I actually am today.`,
+  better: (f,r,e,s,h) => `Today I'm <span class="fhighlight">${e}</span> with focus that is <span class="fhighlight">${f}</span>. Connection feels <span class="fhighlight">${r}</span>, stimuli are <span class="fhighlight">${s}</span>, and habits are <span class="fhighlight">${h}</span>. <em>Better</em> means one intentional act of care — for myself or someone else.`,
+  best:   (f,r,e,s,h) => `At my best, I bring <span class="fhighlight">${f}</span> focus and <span class="fhighlight">${e}</span> energy. I feel <span class="fhighlight">${r}</span>, <span class="fhighlight">${s}</span>, and <span class="fhighlight">${h}</span>. <em>Best</em> is the version of today where I'm fully present, moving from my values, and trusting the process.`,
+};
+
+function freshRenderMadlib() {
+  const el = document.getElementById('fresh-madlib-text');
+  if (!el) return;
+  el.innerHTML = freshTemplates[freshTier](
+    freshPhrases.F(freshVals.F), freshPhrases.R(freshVals.R), freshPhrases.E(freshVals.E),
+    freshPhrases.S(freshVals.S), freshPhrases.H(freshVals.H)
+  );
+}
+
+function freshSetTier(t, btn) {
+  freshTier = t;
+  document.querySelectorAll('.fresh-tier-pill').forEach(p => {
+    p.className = 'fresh-tier-pill ft-' + p.dataset.tier + (p.dataset.tier === t ? ' active' : '');
+  });
+  freshRenderMadlib();
+}
+
+function freshSubmitEntry() {
+  const now = new Date();
+  const avg = Math.round((freshVals.F + freshVals.R + freshVals.E + freshVals.S + freshVals.H) / 5);
+  freshEntries.push({
+    id: freshEntries.length + 1,
+    time: now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
+    timestamp: now.toISOString(),
+    ...freshVals, avg, tier: freshTier,
+    madlib: document.getElementById('fresh-madlib-text').innerText,
+  });
+  addXP(20, 'FRESH check-in logged ✓');
+  const toast = document.getElementById('fresh-toast');
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2000);
+  freshSyncDelta();
+}
+
+function freshShowPanel(p, btn) {
+  document.querySelectorAll('.fresh-panel').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.fresh-tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('fresh-panel-' + p).classList.add('active');
+  btn.classList.add('active');
+  if (p === 'delta') freshSyncDelta();
+}
+
+function freshSyncDelta() {
+  const noData  = document.getElementById('fresh-delta-no-data');
+  const content = document.getElementById('fresh-delta-content');
+  if (!noData || !content) return;
+  if (freshEntries.length === 0) { noData.style.display = ''; content.style.display = 'none'; return; }
+  noData.style.display = 'none';
+  content.style.display = 'block';
+  freshPopulateSelects();
+  freshRenderBumpChart();
+  freshRenderDelta();
+  freshRenderLog();
+}
+
+function freshPopulateSelects() {
+  ['fresh-sel-from', 'fresh-sel-to'].forEach((id, idx) => {
+    const sel = document.getElementById(id);
+    sel.innerHTML = freshEntries.map((e, i) => `<option value="${i}">#${e.id} · ${e.time} · avg ${e.avg}</option>`).join('');
+    if (freshEntries.length >= 2 && idx === 0) sel.value = freshEntries.length - 2;
+    if (idx === 1) sel.value = freshEntries.length - 1;
+  });
+}
+
+function freshRenderBumpChart() {
+  const svg = document.getElementById('freshBumpSvg');
+  if (!svg) return;
+  const W = Math.max(svg.parentElement.clientWidth - 40, 200);
+  const H = 200, padL = 28, padR = 28, padT = 16, padB = 24;
+  const innerW = W - padL - padR, innerH = H - padT - padB;
+  const n = freshEntries.length;
+  const xPos = i => n === 1 ? padL + innerW / 2 : padL + (i / (n - 1)) * innerW;
+  const yPos = v => padT + innerH - ((v - 1) / 9) * innerH;
+  const HEX = { F:'#b05e3a', R:'#4a6fa5', E:'#4a8c6e', S:'#8c6a2e', H:'#7a4e8c' };
+
+  let s = `<svg id="freshBumpSvg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="width:100%;overflow:visible">`;
+  [2,4,6,8,10].forEach(v => {
+    const y = yPos(v);
+    s += `<line x1="${padL}" x2="${padL+innerW}" y1="${y}" y2="${y}" stroke="rgba(167,139,250,0.1)" stroke-width="0.5"/>`;
+    s += `<text x="${padL-4}" y="${y+4}" font-size="8" fill="rgba(167,139,250,0.35)" text-anchor="end" font-family="Space Mono,monospace">${v}</text>`;
+  });
+  freshEntries.forEach((e, i) => {
+    s += `<text x="${xPos(i)}" y="${H-4}" font-size="8" fill="rgba(167,139,250,0.35)" text-anchor="middle" font-family="Space Mono,monospace">#${e.id}</text>`;
+  });
+  FRESH_DIMS.forEach(d => {
+    const hex = HEX[d.key];
+    if (n === 1) { s += `<circle cx="${xPos(0)}" cy="${yPos(freshEntries[0][d.key])}" r="5" fill="${hex}" opacity="0.85"/>`; return; }
+    let path = '';
+    freshEntries.forEach((e, i) => {
+      const x = xPos(i), y = yPos(e[d.key]);
+      if (i === 0) { path += `M ${x} ${y}`; }
+      else { const px = xPos(i-1), py = yPos(freshEntries[i-1][d.key]), cx2 = (px+x)/2; path += ` C ${cx2} ${py} ${cx2} ${y} ${x} ${y}`; }
+    });
+    s += `<path d="${path}" fill="none" stroke="${hex}" stroke-width="2" opacity="0.7"/>`;
+    freshEntries.forEach((e, i) => { s += `<circle cx="${xPos(i)}" cy="${yPos(e[d.key])}" r="4" fill="${hex}" opacity="0.9"/>`; });
+  });
+  s += `</svg>`;
+  svg.outerHTML = s;
+}
+
+function freshRenderDelta() {
+  const fromIdx = parseInt(document.getElementById('fresh-sel-from').value);
+  const toIdx   = parseInt(document.getElementById('fresh-sel-to').value);
+  const from = freshEntries[fromIdx], to = freshEntries[toIdx];
+  if (!from || !to) return;
+
+  document.getElementById('fresh-delta-bars').innerHTML = FRESH_DIMS.map(d => {
+    const a = from[d.key], b = to[d.key], delta = b - a;
+    const arrow = delta > 0 ? '↑' : delta < 0 ? '↓' : '→';
+    const arrowColor = delta > 0 ? '#4a8c6e' : delta < 0 ? '#c05040' : 'rgba(167,139,250,0.4)';
+    return `<div class="fresh-delta-item">
+      <div class="fresh-delta-badge" style="background:${d.light};color:${d.color}">${d.key}</div>
+      <div class="fresh-delta-dim-name">${d.name}</div>
+      <div class="fresh-delta-track"><div class="fresh-delta-bar-fill" style="width:${(b/10)*100}%;background:${d.color};opacity:0.7"></div></div>
+      <div class="fresh-delta-nums">${a} → ${b}</div>
+      <div class="fresh-delta-arrow" style="color:${arrowColor}">${arrow}${Math.abs(delta) > 0 ? ' ' + Math.abs(delta) : ''}</div>
+    </div>`;
+  }).join('');
+
+  const deltas  = FRESH_DIMS.map(d => ({ name: d.name, delta: to[d.key] - from[d.key] }));
+  const gains   = deltas.filter(d => d.delta > 0).sort((a,b) => b.delta - a.delta);
+  const drops   = deltas.filter(d => d.delta < 0).sort((a,b) => a.delta - b.delta);
+  const avgDelta = Math.round((to.F+to.R+to.E+to.S+to.H - from.F-from.R-from.E-from.S-from.H) / 5 * 10) / 10;
+  let text = '';
+  if (!gains.length && !drops.length) {
+    text = 'Everything held steady between these two check-ins. Stability can be its own kind of wisdom.';
+  } else {
+    if (gains.length) text += `<strong>${gains[0].name}</strong> showed the biggest upward movement (+${gains[0].delta}${gains.length > 1 ? `, along with ${gains.slice(1).map(g=>g.name).join(', ')}` : ''}). `;
+    if (drops.length) text += `<strong>${drops[0].name}</strong> pulled back the most (${drops[0].delta}${drops.length > 1 ? `, joined by ${drops.slice(1).map(d=>d.name).join(', ')}` : ''}). `;
+    text += avgDelta > 0 ? `Overall, you're moving <em>upward</em> — average shift of +${avgDelta}.`
+           : avgDelta < 0 ? `Overall, the system contracted — average shift of ${avgDelta}. Worth a moment of honest inquiry.`
+           : `The system balanced out — what rose and what dropped offset each other.`;
+  }
+  document.getElementById('fresh-delta-narrative').innerHTML = text;
+}
+
+function freshRenderLog() {
+  const tColors = { good: '#4a8c6e', better: '#4a6fa5', best: '#7a4e8c' };
+  document.getElementById('fresh-log-body').innerHTML = freshEntries.slice().reverse().map(e =>
+    `<tr><td>${e.id}</td><td>${e.time}</td><td>${e.F}</td><td>${e.R}</td><td>${e.E}</td><td>${e.S}</td><td>${e.H}</td><td>${e.avg}</td><td style="color:${tColors[e.tier]}">${e.tier}</td></tr>`
+  ).join('');
+}
+
+function freshExportData() {
+  const blob = new Blob([JSON.stringify(freshEntries, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'FRESH_checkins_' + new Date().toISOString().split('T')[0] + '.json';
+  a.click();
+}
+</script>
+
+</Layout>

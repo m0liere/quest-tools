@@ -1,0 +1,960 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Artifact Vault" currentPage="/artifact-vault">
+
+<style>
+  :root {
+    --case-bg: #0D0B1A;
+    --case-border: rgba(167,139,250,0.18);
+    --gold: #D97706;
+    --gold-light: #FEF3C7;
+    --gold-pale: rgba(217,119,6,0.1);
+    --text-soft: rgba(253,252,255,0.55);
+    --text-dim: rgba(253,252,255,0.3);
+    --col-madlibs: #D97706;
+    --col-reflection: #0D9488;
+    --col-object: #BE123C;
+    --col-creation: #7C3AED;
+  }
+
+  .vault-page { position: relative; z-index: 1; }
+
+  /* Background gradients */
+  .vault-page::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 50% 5%, rgba(76,29,149,0.12), transparent 60%),
+      radial-gradient(ellipse 40% 30% at 15% 90%, rgba(13,148,136,0.06), transparent 60%),
+      radial-gradient(ellipse 40% 30% at 85% 70%, rgba(217,119,6,0.04), transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* VAULT NAV (internal filter bar) */
+  .vault-filter-bar {
+    position: sticky;
+    top: 60px;
+    z-index: 50;
+    background: rgba(13,11,30,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--case-border);
+    padding: 0.7rem 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .vault-nav-brand {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(217,119,6,0.55);
+  }
+
+  .type-filters {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+
+  .type-pill {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.48rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 0.22rem 0.65rem;
+    border: 1px solid transparent;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-radius: 1px;
+  }
+
+  .type-pill.all         { color: rgba(253,252,255,0.4); border-color: rgba(253,252,255,0.1); }
+  .type-pill.madlibs     { color: rgba(217,119,6,0.55); border-color: rgba(217,119,6,0.15); }
+  .type-pill.reflection  { color: rgba(13,148,136,0.7); border-color: rgba(13,148,136,0.2); }
+  .type-pill.object      { color: rgba(190,18,60,0.7); border-color: rgba(190,18,60,0.2); }
+  .type-pill.creation    { color: rgba(124,58,237,0.7); border-color: rgba(124,58,237,0.2); }
+
+  .type-pill.active.all        { color: #FDFCFF; border-color: rgba(253,252,255,0.4); }
+  .type-pill.active.madlibs    { color: var(--col-madlibs); border-color: var(--col-madlibs); background: rgba(217,119,6,0.08); }
+  .type-pill.active.reflection { color: #3EC8C6; border-color: var(--col-reflection); background: rgba(13,148,136,0.08); }
+  .type-pill.active.object     { color: #E0607A; border-color: var(--col-object); background: rgba(190,18,60,0.08); }
+  .type-pill.active.creation   { color: #9A70FF; border-color: var(--col-creation); background: rgba(124,58,237,0.08); }
+
+  /* HERO */
+  .vault-hero {
+    padding: 5rem 2.5rem 4rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .vault-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 50% 50% at 50% 30%, rgba(76,29,149,0.15), transparent 70%);
+  }
+
+  .hero-eyebrow {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--gold);
+    opacity: 0.7;
+    margin-bottom: 1.2rem;
+    position: relative;
+  }
+
+  .hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(3rem, 8vw, 6rem);
+    font-weight: 300;
+    color: #FDFCFF;
+    line-height: 1;
+    position: relative;
+    margin-bottom: 0.5rem;
+  }
+
+  .hero-title em { color: var(--gold); font-style: italic; }
+
+  .hero-sub {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.1rem;
+    color: var(--text-soft);
+    position: relative;
+    max-width: 480px;
+    margin: 0.8rem auto 0;
+    line-height: 1.7;
+  }
+
+  /* ADD ARTIFACT PANEL */
+  .add-panel {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 2rem 3rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .add-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.2rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .add-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(217,119,6,0.5);
+  }
+
+  .type-selector { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+
+  .type-sel-btn {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.48rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.28rem 0.65rem;
+    border: 1px solid rgba(253,252,255,0.1);
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: rgba(253,252,255,0.35);
+    border-radius: 1px;
+  }
+
+  .type-sel-btn:hover { border-color: rgba(253,252,255,0.3); color: #FDFCFF; }
+  .type-sel-btn.selected { background: var(--gold); color: #0D0B1E; border-color: var(--gold); font-weight: 700; }
+
+  .add-form {
+    background: var(--case-bg);
+    border: 1px solid var(--case-border);
+    padding: 1.8rem 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .form-field { display: flex; flex-direction: column; gap: 0.4rem; }
+
+  .form-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.45rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  .form-input, .form-select, .form-textarea {
+    border: none;
+    border-bottom: 1px solid rgba(217,119,6,0.2);
+    background: transparent;
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    color: #FDFCFF;
+    padding: 4px 2px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .form-input::placeholder, .form-textarea::placeholder { color: rgba(253,252,255,0.15); font-style: italic; }
+  .form-input:focus, .form-textarea:focus { border-bottom-color: var(--gold); }
+
+  .form-select {
+    cursor: pointer;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0l5 6 5-6z' fill='rgba(217,119,6,0.5)'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 4px center;
+    padding-right: 20px;
+  }
+
+  .form-select option { background: #0D0B1E; color: #FDFCFF; }
+
+  .form-textarea {
+    resize: vertical;
+    min-height: 80px;
+    border: 1px solid rgba(217,119,6,0.12);
+    padding: 0.6rem 0.8rem;
+    line-height: 1.7;
+    font-family: 'Mulish', sans-serif;
+  }
+
+  /* Mad Libs form */
+  .ml-form { display: none; flex-direction: column; gap: 0.8rem; }
+  .ml-form.show { display: flex; }
+
+  .ml-form-line {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .ml-prefix-form {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1rem;
+    color: var(--text-soft);
+    white-space: nowrap;
+  }
+
+  .ml-blank-form {
+    border: none;
+    border-bottom: 1px solid rgba(217,119,6,0.3);
+    background: transparent;
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1rem;
+    color: #FEF3C7;
+    min-width: 130px;
+    flex: 1;
+    outline: none;
+    padding: 1px 3px;
+  }
+
+  .ml-blank-form::placeholder { color: rgba(217,119,6,0.2); }
+  .ml-blank-form:focus { border-bottom-color: var(--gold); }
+
+  /* Object drop */
+  .object-drop {
+    border: 1px dashed rgba(190,18,60,0.3);
+    padding: 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  .object-drop:hover { border-color: rgba(190,18,60,0.6); background: rgba(190,18,60,0.04); }
+
+  .object-drop-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.52rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(190,18,60,0.5);
+  }
+
+  .object-drop input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+
+  #object-preview {
+    max-width: 100%;
+    max-height: 200px;
+    margin-top: 1rem;
+    display: none;
+    border: 4px solid #FDFCFF;
+    box-shadow: 4px 4px 0 rgba(0,0,0,0.4);
+  }
+
+  .add-btn {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 0.75rem 2rem;
+    align-self: flex-end;
+    background: var(--gold);
+    color: #0D0B1E;
+    border: none;
+    cursor: pointer;
+    font-weight: 700;
+    transition: background 0.2s;
+    border-radius: 1px;
+  }
+
+  .add-btn:hover { background: #F59E0B; }
+
+  /* VAULT GRID */
+  .vault-main {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 2rem 6rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .vault-count {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.5rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 1.5rem;
+  }
+
+  .vault-count span { color: var(--gold); }
+
+  .vault-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px,1fr));
+    gap: 1px;
+    background: var(--case-border);
+  }
+
+  .vault-empty {
+    grid-column: 1 / -1;
+    background: #0D0B1E;
+    padding: 4rem 2rem;
+    text-align: center;
+  }
+
+  .vault-empty p {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.2rem;
+    color: var(--text-dim);
+    line-height: 1.7;
+  }
+
+  /* ARTIFACT CARD */
+  .artifact-card {
+    background: var(--case-bg);
+    padding: 1.6rem 1.8rem;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.2s;
+    animation: cardIn 0.4s ease forwards;
+  }
+
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .artifact-card:hover { background: rgba(16,14,30,0.95); }
+
+  .artifact-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+
+  .artifact-card.type-madlibs::before   { background: var(--col-madlibs); }
+  .artifact-card.type-reflection::before { background: var(--col-reflection); }
+  .artifact-card.type-object::before     { background: var(--col-object); }
+  .artifact-card.type-creation::before   { background: var(--col-creation); }
+
+  .card-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.9rem;
+  }
+
+  .card-type {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.46rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 1px;
+  }
+
+  .card-type.madlibs   { background: rgba(217,119,6,0.15); color: var(--col-madlibs); }
+  .card-type.reflection{ background: rgba(13,148,136,0.15); color: #3EC8C6; }
+  .card-type.object    { background: rgba(190,18,60,0.15); color: #E0607A; }
+  .card-type.creation  { background: rgba(124,58,237,0.15); color: #9A70FF; }
+
+  .card-week {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.46rem;
+    letter-spacing: 0.12em;
+    color: var(--text-dim);
+  }
+
+  .card-timestamp {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.4rem;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    margin-bottom: 0.6rem;
+    font-style: italic;
+  }
+
+  .card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #FDFCFF;
+    margin-bottom: 0.5rem;
+    line-height: 1.3;
+  }
+
+  .card-body {
+    font-family: 'Mulish', sans-serif;
+    font-size: 0.88rem;
+    line-height: 1.75;
+    color: var(--text-soft);
+  }
+
+  .ml-card-text {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 0.95rem;
+    color: rgba(253,252,255,0.7);
+    line-height: 1.9;
+  }
+
+  .ml-card-text strong { color: #FEF3C7; font-style: normal; font-weight: 600; }
+
+  .card-version-badge {
+    display: inline-block;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.4rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 2px 5px;
+    background: rgba(217,119,6,0.1);
+    border: 1px solid rgba(217,119,6,0.2);
+    color: var(--gold);
+    margin-bottom: 0.8rem;
+  }
+
+  /* Polaroid */
+  .polaroid {
+    background: #F8F4EC;
+    padding: 8px 8px 28px 8px;
+    margin-bottom: 0.8rem;
+    box-shadow: 2px 2px 8px rgba(0,0,0,0.4);
+    transform: rotate(-1.5deg);
+    display: inline-block;
+    max-width: 100%;
+  }
+
+  .polaroid img {
+    display: block;
+    width: 100%;
+    max-height: 160px;
+    object-fit: cover;
+    filter: contrast(1.05) saturate(0.9);
+  }
+
+  .polaroid-caption {
+    font-family: 'Mulish', sans-serif;
+    font-style: italic;
+    font-size: 0.72rem;
+    color: #4A3520;
+    text-align: center;
+    margin-top: 4px;
+    line-height: 1.5;
+  }
+
+  .creation-body {
+    font-family: 'Mulish', sans-serif;
+    font-size: 0.9rem;
+    line-height: 1.8;
+    color: var(--text-soft);
+    white-space: pre-wrap;
+  }
+
+  .card-delete {
+    position: absolute;
+    top: 0.8rem;
+    right: 0.8rem;
+    background: none;
+    border: none;
+    color: rgba(253,252,255,0.15);
+    cursor: pointer;
+    font-size: 0.7rem;
+    transition: color 0.2s;
+    font-family: 'Space Mono', monospace;
+    line-height: 1;
+  }
+
+  .card-delete:hover { color: rgba(190,18,60,0.7); }
+
+  /* EVOLUTION VIEW */
+  .ml-evolution {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 2rem 4rem;
+    display: none;
+    position: relative;
+    z-index: 1;
+  }
+
+  .ml-evolution.show { display: block; }
+
+  .evo-header {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.52rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(217,119,6,0.5);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .evo-header::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(217,119,6,0.12);
+  }
+
+  .evo-line {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(217,119,6,0.08);
+  }
+
+  .evo-week {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.5rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gold);
+    white-space: nowrap;
+    padding-top: 0.15rem;
+    min-width: 48px;
+  }
+
+  .evo-text {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1rem;
+    color: rgba(253,252,255,0.6);
+    line-height: 1.85;
+  }
+
+  .evo-text strong { color: #FEF3C7; font-style: normal; }
+
+  @media (max-width: 600px) {
+    .form-row { grid-template-columns: 1fr; }
+    .vault-grid { grid-template-columns: 1fr; }
+    .vault-filter-bar { padding: 0.8rem 1rem; }
+    .add-panel, .vault-main { padding-left: 1rem; padding-right: 1rem; }
+    .type-filters { display: none; }
+  }
+</style>
+
+<div class="vault-page">
+
+  <!-- FILTER BAR (sticky below main nav) -->
+  <div class="vault-filter-bar">
+    <div class="vault-nav-brand">Quest Labs ✦ Artifact Vault</div>
+    <div class="type-filters">
+      <button class="type-pill all active" onclick="filterArtifacts('all',this)">All</button>
+      <button class="type-pill madlibs" onclick="filterArtifacts('madlibs',this)">2032 Mad Libs</button>
+      <button class="type-pill reflection" onclick="filterArtifacts('reflection',this)">Reflections</button>
+      <button class="type-pill object" onclick="filterArtifacts('object',this)">Objects</button>
+      <button class="type-pill creation" onclick="filterArtifacts('creation',this)">Creations</button>
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <div class="vault-hero">
+    <p class="hero-eyebrow">The Questor's Intensive ✦ 2026–2032</p>
+    <h1 class="hero-title">The Artifact<br><em>Vault</em></h1>
+    <p class="hero-sub">Everything you made, wrote, found, and became.<br>Not a gallery. A reliquary.</p>
+  </div>
+
+  <!-- ADD ARTIFACT PANEL -->
+  <div class="add-panel">
+    <div class="add-header">
+      <div class="add-title">Add an Artifact</div>
+      <div class="type-selector">
+        <button class="type-sel-btn selected" onclick="selectType('madlibs',this)">2032 Mad Libs</button>
+        <button class="type-sel-btn" onclick="selectType('reflection',this)">Reflection</button>
+        <button class="type-sel-btn" onclick="selectType('object',this)">Object / Photo</button>
+        <button class="type-sel-btn" onclick="selectType('creation',this)">Creation</button>
+      </div>
+    </div>
+
+    <div class="add-form">
+      <!-- Common fields -->
+      <div class="form-row">
+        <div class="form-field">
+          <span class="form-label">Week</span>
+          <select class="form-select" id="f-week">
+            <option value="">— week —</option>
+            <option value="Artifact Zero">Artifact Zero</option>
+            <option value="Week 1">Week 1</option>
+            <option value="Week 2">Week 2</option>
+            <option value="Week 3">Week 3</option>
+            <option value="Week 4 ★">Week 4 ★ Milestone</option>
+            <option value="Week 5">Week 5</option>
+            <option value="Week 6">Week 6</option>
+            <option value="Week 7">Week 7</option>
+            <option value="Week 8 ★">Week 8 ★ Milestone</option>
+            <option value="Week 9">Week 9</option>
+            <option value="Week 10">Week 10</option>
+            <option value="Week 11">Week 11</option>
+            <option value="Week 12 ★">Week 12 ★ Final</option>
+            <option value="Post-Journey">Post-Journey</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <span class="form-label">Questor</span>
+          <input class="form-input" id="f-questor" type="text" placeholder="your name">
+        </div>
+      </div>
+
+      <!-- MADLIBS FORM -->
+      <div class="ml-form show" id="form-madlibs">
+        <div class="form-label" style="margin-bottom:0.3rem;">2032 Joy of Being — Fill in your snapshot</div>
+        <div class="ml-form-line">
+          <span class="ml-prefix-form">In 2032, I am a</span>
+          <input class="ml-blank-form" id="ml-role" type="text" placeholder="what you do, fully">
+          <span class="ml-prefix-form">who</span>
+          <input class="ml-blank-form" id="ml-verb" type="text" placeholder="the transformation">
+        </div>
+        <div class="ml-form-line">
+          <span class="ml-prefix-form">with and for</span>
+          <input class="ml-blank-form" id="ml-with" type="text" placeholder="who you serve">
+          <span class="ml-prefix-form">inside a world that has learned to</span>
+          <input class="ml-blank-form" id="ml-world" type="text" placeholder="the paradigm shift">
+        </div>
+        <div class="ml-form-line">
+          <span class="ml-prefix-form">The problem I exist to dissolve is</span>
+          <input class="ml-blank-form" id="ml-problem" type="text" placeholder="the thing you couldn't not address">
+        </div>
+        <div class="ml-form-line">
+          <span class="ml-prefix-form">What I couldn't have known in 2025 was</span>
+          <input class="ml-blank-form" id="ml-surprise" style="min-width:200px;" type="text" placeholder="the surprise">
+        </div>
+      </div>
+
+      <!-- REFLECTION FORM -->
+      <div id="form-reflection" style="display:none; flex-direction:column; gap:0.8rem;">
+        <div class="form-field">
+          <span class="form-label">Title / What this reflection is about</span>
+          <input class="form-input" id="r-title" type="text" placeholder="name this moment">
+        </div>
+        <div class="form-field">
+          <span class="form-label">Reflection</span>
+          <textarea class="form-textarea" id="r-body" placeholder="Write freely. This is the vault — it holds everything."></textarea>
+        </div>
+        <div class="form-field">
+          <span class="form-label">What I'm carrying forward</span>
+          <input class="form-input" id="r-carry" type="text" placeholder="one sentence">
+        </div>
+      </div>
+
+      <!-- OBJECT FORM -->
+      <div id="form-object" style="display:none; flex-direction:column; gap:0.8rem;">
+        <div class="form-field">
+          <span class="form-label">Object Name</span>
+          <input class="form-input" id="o-title" type="text" placeholder="what is this object?">
+        </div>
+        <div class="object-drop" onclick="document.getElementById('o-file').click()">
+          <p class="object-drop-label">Tap to add a photo — polaroid treatment applied</p>
+          <input type="file" id="o-file" accept="image/*" onchange="previewImage(this)">
+          <img id="object-preview" alt="object preview">
+        </div>
+        <div class="form-field">
+          <span class="form-label">Why this object? What does it hold?</span>
+          <textarea class="form-textarea" id="o-why" placeholder="Objects carry futures. What is this one carrying?"></textarea>
+        </div>
+      </div>
+
+      <!-- CREATION FORM -->
+      <div id="form-creation" style="display:none; flex-direction:column; gap:0.8rem;">
+        <div class="form-field">
+          <span class="form-label">Title of the Work</span>
+          <input class="form-input" id="c-title" type="text" placeholder="what did you make?">
+        </div>
+        <div class="form-field">
+          <span class="form-label">Medium / Type</span>
+          <input class="form-input" id="c-medium" type="text" placeholder="writing, music, game, drawing, methodology, code…">
+        </div>
+        <div class="form-field">
+          <span class="form-label">The Work (paste text, lyrics, description, or link)</span>
+          <textarea class="form-textarea" id="c-body" style="min-height:120px;" placeholder="Paste what you made. If it can't be pasted, describe it."></textarea>
+        </div>
+        <div class="form-field">
+          <span class="form-label">What condition was this made in?</span>
+          <input class="form-input" id="c-condition" type="text" placeholder="the circumstance of making">
+        </div>
+      </div>
+
+      <button class="add-btn" onclick="addArtifact()">→ Place in Vault</button>
+    </div>
+  </div>
+
+  <!-- MADLIBS EVOLUTION VIEW -->
+  <div class="ml-evolution" id="ml-evolution">
+    <div class="evo-header">2032 Joy of Being — All Versions, Layered</div>
+    <div id="evo-lines"></div>
+  </div>
+
+  <!-- VAULT GRID -->
+  <div class="vault-main">
+    <p class="vault-count" id="vault-count">0 artifacts in the vault</p>
+    <div class="vault-grid" id="vault-grid">
+      <div class="vault-empty">
+        <p>The vault is empty.<br>Every artifact you add becomes part of your portrait.<br>Start with Artifact Zero.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script is:inline>
+let artifacts = [];
+let currentFilter = 'all';
+let currentType = 'madlibs';
+
+function loadFromStorage() {
+  try {
+    const saved = localStorage.getItem('artifact_vault');
+    if (saved) artifacts = JSON.parse(saved);
+  } catch(e) { artifacts = []; }
+}
+
+function saveToStorage() {
+  try { localStorage.setItem('artifact_vault', JSON.stringify(artifacts)); } catch(e) {}
+}
+
+function selectType(type, btn) {
+  currentType = type;
+  document.querySelectorAll('.type-sel-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+
+  ['madlibs','reflection','object','creation'].forEach(t => {
+    const el = document.getElementById(`form-${t}`);
+    if (el) el.style.display = t === type ? 'flex' : 'none';
+  });
+}
+
+function previewImage(input) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = document.getElementById('object-preview');
+      img.src = e.target.result;
+      img.style.display = 'block';
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+function addArtifact() {
+  const week = document.getElementById('f-week').value;
+  const questor = document.getElementById('f-questor').value.trim();
+  const now = new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+
+  let artifact = { id: Date.now(), type: currentType, week, questor, timestamp: now };
+
+  if (currentType === 'madlibs') {
+    artifact.role = v('ml-role'); artifact.verb = v('ml-verb');
+    artifact.with = v('ml-with'); artifact.world = v('ml-world');
+    artifact.problem = v('ml-problem'); artifact.surprise = v('ml-surprise');
+    if (!artifact.role && !artifact.verb) { alert('Fill in at least two Mad Libs blanks.'); return; }
+    clearFields(['ml-role','ml-verb','ml-with','ml-world','ml-problem','ml-surprise']);
+  }
+  else if (currentType === 'reflection') {
+    artifact.title = v('r-title') || 'Untitled Reflection';
+    artifact.body = v('r-body'); artifact.carry = v('r-carry');
+    if (!artifact.body) { alert('Write something first.'); return; }
+    clearFields(['r-title','r-body','r-carry']);
+  }
+  else if (currentType === 'object') {
+    artifact.title = v('o-title') || 'Untitled Object';
+    artifact.why = v('o-why');
+    const img = document.getElementById('object-preview');
+    artifact.imgSrc = img.style.display !== 'none' ? img.src : null;
+    img.style.display = 'none'; img.src = '';
+    clearFields(['o-title','o-why']);
+  }
+  else if (currentType === 'creation') {
+    artifact.title = v('c-title') || 'Untitled Creation';
+    artifact.medium = v('c-medium');
+    artifact.body = v('c-body'); artifact.condition = v('c-condition');
+    if (!artifact.body) { alert('Add your creation first.'); return; }
+    clearFields(['c-title','c-medium','c-body','c-condition']);
+  }
+
+  artifacts.unshift(artifact);
+  saveToStorage();
+  renderVault();
+  updateEvolution();
+}
+
+function v(id) { return document.getElementById(id)?.value?.trim() || ''; }
+function clearFields(ids) { ids.forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; }); }
+
+function renderVault() {
+  const grid = document.getElementById('vault-grid');
+  const filtered = currentFilter === 'all' ? artifacts : artifacts.filter(a => a.type === currentFilter);
+  const count = document.getElementById('vault-count');
+
+  count.innerHTML = `<span>${artifacts.length}</span> artifact${artifacts.length !== 1 ? 's' : ''} in the vault`;
+
+  if (filtered.length === 0) {
+    grid.innerHTML = '<div class="vault-empty"><p>' + (currentFilter === 'all' ? 'The vault is empty.<br>Every artifact you add becomes part of your portrait.<br>Start with Artifact Zero.' : `No ${currentFilter} artifacts yet.`) + '</p></div>';
+    return;
+  }
+
+  grid.innerHTML = filtered.map(a => buildCard(a)).join('');
+}
+
+function buildCard(a) {
+  const typeLabel = {madlibs:'2032 Mad Libs', reflection:'Reflection', object:'Object', creation:'Creation'}[a.type];
+  const weekStr = a.week ? `<div class="card-week">${a.week}</div>` : '';
+  const questorStr = a.questor ? ` · ${a.questor}` : '';
+
+  let inner = '';
+
+  if (a.type === 'madlibs') {
+    const total = artifacts.filter(x => x.type === 'madlibs').length;
+    const versionNum = total - artifacts.filter(x => x.type === 'madlibs').indexOf(a);
+    inner = `
+      <div class="card-version-badge">Version ${versionNum} of ${total}</div>
+      <div class="ml-card-text">
+        In 2032, I am a <strong>${a.role||'…'}</strong> who <strong>${a.verb||'…'}</strong>
+        with and for <strong>${a.with||'…'}</strong>
+        inside a world that has learned to <strong>${a.world||'…'}</strong>.
+        ${a.problem ? `The problem I exist to dissolve is <strong>${a.problem}</strong>.` : ''}
+        ${a.surprise ? `What I couldn't have known in 2025 was <strong>${a.surprise}</strong>.` : ''}
+      </div>
+    `;
+  }
+  else if (a.type === 'reflection') {
+    inner = `
+      <div class="card-title">${a.title}</div>
+      <div class="card-body">${a.body}</div>
+      ${a.carry ? `<div style="margin-top:0.8rem;font-style:italic;font-size:0.82rem;color:rgba(253,252,255,0.35);">Carrying forward: ${a.carry}</div>` : ''}
+    `;
+  }
+  else if (a.type === 'object') {
+    const polaroid = a.imgSrc
+      ? `<div class="polaroid"><img src="${a.imgSrc}" alt="${a.title}"><p class="polaroid-caption">${a.title}</p></div>`
+      : `<div class="card-title">${a.title}</div>`;
+    inner = `${polaroid}<div class="card-body" style="margin-top:0.6rem;">${a.why||''}</div>`;
+  }
+  else if (a.type === 'creation') {
+    inner = `
+      <div class="card-title">${a.title}</div>
+      ${a.medium ? `<div style="font-family:'Space Mono',monospace;font-size:0.46rem;letter-spacing:0.12em;color:rgba(154,112,255,0.5);text-transform:uppercase;margin-bottom:0.5rem;">${a.medium}</div>` : ''}
+      <div class="creation-body">${a.body}</div>
+      ${a.condition ? `<div style="margin-top:0.8rem;font-style:italic;font-size:0.82rem;color:rgba(253,252,255,0.3);">Made while: ${a.condition}</div>` : ''}
+    `;
+  }
+
+  return `
+    <div class="artifact-card type-${a.type}">
+      <div class="card-meta">
+        <div class="card-type ${a.type}">${typeLabel}</div>
+        ${weekStr}
+      </div>
+      <div class="card-timestamp">${a.timestamp}${questorStr}</div>
+      ${inner}
+      <button class="card-delete" onclick="deleteArtifact(${a.id})">✕</button>
+    </div>
+  `;
+}
+
+function deleteArtifact(id) {
+  if (!confirm('Remove this artifact from the vault?')) return;
+  artifacts = artifacts.filter(a => a.id !== id);
+  saveToStorage();
+  renderVault();
+  updateEvolution();
+}
+
+function filterArtifacts(type, btn) {
+  currentFilter = type;
+  document.querySelectorAll('.type-pill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  const evoEl = document.getElementById('ml-evolution');
+  evoEl.classList.toggle('show', type === 'madlibs');
+
+  renderVault();
+}
+
+function updateEvolution() {
+  const mlArtifacts = [...artifacts].filter(a => a.type === 'madlibs').reverse();
+  const evoLines = document.getElementById('evo-lines');
+  if (!evoLines) return;
+
+  evoLines.innerHTML = mlArtifacts.map((a, i) => `
+    <div class="evo-line">
+      <div class="evo-week">${a.week || `v${i+1}`}</div>
+      <div class="evo-text">
+        In 2032, I am a <strong>${a.role||'…'}</strong> who <strong>${a.verb||'…'}</strong>
+        with and for <strong>${a.with||'…'}</strong>
+        inside a world that has learned to <strong>${a.world||'…'}</strong>.
+        ${a.problem ? `The problem I exist to dissolve is <strong>${a.problem}</strong>.` : ''}
+        ${a.surprise ? `What I couldn't have known in 2025 was <strong>${a.surprise}</strong>.` : ''}
+      </div>
+    </div>
+  `).join('') || '<p style="font-style:italic;color:rgba(253,252,255,0.2);font-family:\'Playfair Display\',serif;font-size:1rem;">No Mad Libs added yet. Add your first snapshot.</p>';
+}
+
+loadFromStorage();
+renderVault();
+updateEvolution();
+</script>
+
+</Layout>
