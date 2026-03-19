@@ -36,7 +36,7 @@ echo " This folder was not cloned from GitHub."
 echo " You have two options to get updates:"
 echo ""
 echo "   Option 1 — Re-download the zip from GitHub:"
-echo "   https://github.com/YOUR_USERNAME/quest-tools/releases/latest"
+echo "   https://github.com/m0liere/quest-tools/releases/latest"
 echo "   Then replace all files EXCEPT db.json (that's your data)."
 echo ""
 echo "   Option 2 — Use the GitHub CLI for automatic updates:"
@@ -70,7 +70,7 @@ echo " (Your data in db.json will be preserved.)"
 echo ""
 
 TMPDIR_QL=$(mktemp -d)
-gh repo clone YOUR_USERNAME/quest-tools "$TMPDIR_QL/repo" -- --depth=1 2>/dev/null
+gh repo clone m0liere/quest-tools "$TMPDIR_QL/repo" -- --depth=1 2>/dev/null
 
 if [ $? -ne 0 ]; then
     echo " [!] Could not reach the repository."

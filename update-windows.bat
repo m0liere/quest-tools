@@ -37,7 +37,7 @@ echo  This folder was not cloned from GitHub.
 echo  You have two options to get updates:
 echo.
 echo    Option 1 — Re-download the zip from GitHub:
-echo    https://github.com/YOUR_USERNAME/quest-tools/releases/latest
+echo    https://github.com/m0liere/quest-tools/releases/latest
 echo    Then replace all files EXCEPT db.json (that's your data).
 echo.
 echo    Option 2 — Use the GitHub CLI for automatic updates:
@@ -72,7 +72,7 @@ set TMPDIR=%TEMP%\ql-update
 if exist "%TMPDIR%" rmdir /s /q "%TMPDIR%"
 mkdir "%TMPDIR%"
 
-gh repo clone YOUR_USERNAME/quest-tools "%TMPDIR%\repo" -- --depth=1
+gh repo clone m0liere/quest-tools "%TMPDIR%\repo" -- --depth=1
 if %errorlevel% neq 0 (
     echo  [!] Could not reach the repository.
     echo      Make sure you're connected to the internet and try again.
