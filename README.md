@@ -10,7 +10,10 @@ Includes: Quest Card, Wheel of Life, FRESH Check-in, and Questor Profile.
 
 ### Step 1 — Download
 
-Download the latest zip from the [Releases page](https://github.com/m0liere/quest-tools/releases/latest) and unzip it anywhere on your computer.
+1. Go to **[github.com/m0liere/quest-tools](https://github.com/m0liere/quest-tools)**
+2. Click the green **Code** button near the top right
+3. Click **Download ZIP**
+4. Unzip the downloaded file anywhere on your computer
 
 ### Step 2 — Install Node.js (one-time)
 
